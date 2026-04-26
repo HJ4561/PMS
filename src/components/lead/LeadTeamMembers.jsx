@@ -1,11 +1,12 @@
+// components/lead/LeadTeamMembers.jsx
 import { useState } from 'react';
-import { Search, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search } from 'lucide-react';
+import Topbar from '../shared/Topbar';
 import { TEAM_MEMBERS, PROJECTS, P_TEAMS, getMemberStats, getUserById } from '../../data/mockData';
-import { Avatar, ProgressRing } from '../shared/UIComponents';
+import { ProgressRing } from '../shared/UIComponents';
 
 export default function LeadTeamMembers() {
   const [search, setSearch] = useState('');
-  const [expanded, setExpanded] = useState(null);
 
   const filtered = TEAM_MEMBERS.filter(m =>
     m.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -13,172 +14,104 @@ export default function LeadTeamMembers() {
     m.skills.toLowerCase().includes(search.toLowerCase())
   );
 
-  const colors = ['#6c63ff', '#2dd4bf', '#f43f5e', '#fbbf24', '#10b981', '#f97316', '#ec4899', '#a78bfa'];
+  const colors = ['#6366f1', '#2dd4bf', '#f43f5e', '#f59e0b', '#10b981', '#f97316', '#ec4899', '#a78bfa'];
 
   return (
-    <div className="page-container">
+    <div>
+      <Topbar title="Team Members" />
+      <div className="page-container">
 
-      {/* HEADER */}
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800 }}>
-          Team Members
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-          View your assigned team members and their performance
-        </p>
-      </div>
+        <div style={{ position: 'relative', marginBottom: 22, maxWidth: 380 }}>
+          <Search size={14} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+          <input className="input" placeholder="Search by name, role, or skills…" value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: 34 }} />
+        </div>
 
-      {/* SEARCH */}
-      <div style={{ position: 'relative', marginBottom: 20 }}>
-        <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-        <input
-          className="input"
-          placeholder="Search members..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ paddingLeft: 36, maxWidth: 400 }}
-        />
-      </div>
+        <div className="grid-auto stagger-children">
+          {filtered.map((member, i) => {
+            const stats = getMemberStats(member.tm_id);
+            const color = member.avatar_color || colors[i % colors.length];
+            const addedBy = getUserById(member.added_by);
+            const memberProjects = P_TEAMS
+              .filter(pt => pt.tm_id === member.tm_id)
+              .map(pt => PROJECTS.find(p => p.p_id === pt.p_id))
+              .filter(Boolean);
+            const onTimeRate = stats.completedTasks > 0 ? Math.round((stats.completedOnTime / stats.completedTasks) * 100) : 0;
+            const initials = member.name.split(' ').map(n => n[0]).join('').toUpperCase();
 
-      {/* CARDS */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-        {filtered.map((member, i) => {
-          const stats = getMemberStats(member.tm_id);
-          const color = member.avatar_color || colors[i % colors.length];
-          const addedBy = getUserById(member.added_by);
-          const memberProjects = P_TEAMS
-            .filter(pt => pt.tm_id === member.tm_id)
-            .map(pt => PROJECTS.find(p => p.p_id === pt.p_id))
-            .filter(Boolean);
-
-          const isExpanded = expanded === member.tm_id;
-
-          const onTimeRate =
-            stats.completedTasks > 0
-              ? Math.round((stats.completedOnTime / stats.completedTasks) * 100)
-              : 0;
-
-          return (
-            <div key={member.tm_id} className="card">
-
-              {/* TOP ROW */}
-              <div
-                onClick={() => setExpanded(isExpanded ? null : member.tm_id)}
-                style={{
-                  padding: 18,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 16,
-                  cursor: 'pointer'
-                }}
-              >
-
-                <Avatar name={member.name} color={color} size="md" />
-
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ fontWeight: 700 }}>{member.name}</h3>
-                  <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {member.role} • {member.experience} yrs
-                  </p>
-                </div>
-
-                {/* QUICK STATS */}
-                <div style={{ display: 'flex', gap: 18 }}>
-                  <div>
-                    <p style={{ fontWeight: 700 }}>{stats.totalTasks}</p>
-                    <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Tasks</p>
+            return (
+              <div key={member.tm_id} className="member-card animate-fade-in">
+                {/* Header */}
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div
+                    className="avatar avatar-lg"
+                    style={{ background: color + '22', color, border: `2px solid ${color}40`, width: 50, height: 50, fontSize: 17 }}
+                  >
+                    {initials}
                   </div>
-
-                  <div>
-                    <p style={{ fontWeight: 700, color: '#10b981' }}>
-                      {stats.completedTasks}
-                    </p>
-                    <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Done</p>
-                  </div>
-
-                  <div>
-                    <p style={{ fontWeight: 700, color: '#6c63ff' }}>
-                      {stats.inProgressTasks}
-                    </p>
-                    <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Active</p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 14.5, marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{member.name}</h3>
+                    <span className="badge badge-purple" style={{ fontSize: 10.5 }}>{member.role}</span>
                   </div>
                 </div>
 
-                {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-              </div>
+                {/* Info */}
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{member.qualification} · {member.experience} yrs exp</p>
 
-              {/* EXPANDED SECTION */}
-              {isExpanded && (
-                <div style={{ padding: 18, borderTop: '1px solid var(--border-subtle)' }}>
+                {/* Skills */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {member.skills.split(', ').slice(0, 4).map(s => (
+                    <span key={s} className="badge badge-gray" style={{ fontSize: 10.5 }}>{s}</span>
+                  ))}
+                </div>
 
-                  {/* SKILLS */}
-                  <div style={{ marginBottom: 12 }}>
-                    <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Skills</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {member.skills.split(', ').map(skill => (
-                        <span key={skill} className="badge badge-purple">
-                          {skill}
-                        </span>
-                      ))}
+                {/* Stats row */}
+                <div style={{ display: 'flex', gap: 0, background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+                  {[
+                    { label: 'Tasks', value: stats.totalTasks, color: 'var(--text-primary)' },
+                    { label: 'Done', value: stats.completedTasks, color: '#10b981' },
+                    { label: 'Active', value: stats.inProgressTasks, color: '#6366f1' },
+                  ].map((s, idx, arr) => (
+                    <div key={s.label} style={{ flex: 1, textAlign: 'center', padding: '10px 4px', borderRight: idx < arr.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
+                      <p style={{ fontSize: 18, fontWeight: 900, fontFamily: 'var(--font-display)', color: s.color, lineHeight: 1, letterSpacing: '-0.02em' }}>{s.value}</p>
+                      <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2 }}>{s.label}</p>
                     </div>
-                  </div>
+                  ))}
+                </div>
 
-                  {/* PERFORMANCE */}
-                  <div style={{ display: 'flex', gap: 20, marginBottom: 12 }}>
-                    <ProgressRing
-                      progress={onTimeRate}
-                      size={55}
-                      strokeWidth={4}
-                      color={onTimeRate > 70 ? '#10b981' : '#fbbf24'}
-                    />
-
-                    <div>
-                      <p style={{ fontWeight: 600 }}>{onTimeRate}% On-time Delivery</p>
-                      <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        {stats.completedOnTime}/{stats.completedTasks} tasks
-                      </p>
-                      <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        Added by: {addedBy?.u_name}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* PROJECTS */}
+                {/* Performance */}
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '10px 12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                  <ProgressRing
+                    progress={onTimeRate}
+                    size={44}
+                    strokeWidth={4}
+                    color={onTimeRate >= 70 ? '#10b981' : onTimeRate >= 40 ? '#f59e0b' : '#f43f5e'}
+                  />
                   <div>
-                    <p style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
-                      Projects
-                    </p>
+                    <p style={{ fontSize: 12.5, fontWeight: 700 }}>{onTimeRate}% On-time</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{stats.completedOnTime}/{stats.completedTasks} tasks on schedule</p>
+                    {addedBy && <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 1 }}>Added by {addedBy.u_name}</p>}
+                  </div>
+                </div>
 
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {memberProjects.map(p => (
-                        <span
-                          key={p.p_id}
-                          style={{
-                            padding: '5px 10px',
-                            borderRadius: 6,
-                            background: 'var(--bg-hover)',
-                            fontSize: 12
-                          }}
-                        >
+                {/* Projects */}
+                {memberProjects.length > 0 && (
+                  <div>
+                    <p style={{ fontSize: 10.5, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Projects</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {memberProjects.slice(0, 3).map(p => (
+                        <span key={p.p_id} style={{ padding: '4px 9px', borderRadius: 6, background: 'var(--bg-hover)', fontSize: 11, border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: p.status === 'completed' ? '#10b981' : '#6366f1', display: 'inline-block' }} />
                           {p.p_name}
                         </span>
                       ))}
-
-                      {memberProjects.length === 0 && (
-                        <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                          No projects assigned
-                        </p>
-                      )}
+                      {memberProjects.length > 3 && <span style={{ fontSize: 11, color: 'var(--text-muted)', padding: '4px 0' }}>+{memberProjects.length - 3} more</span>}
                     </div>
                   </div>
-
-                </div>
-              )}
-
-            </div>
-          );
-        })}
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
