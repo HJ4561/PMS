@@ -5,12 +5,17 @@ import { FolderKanban, CheckCircle2, Users, Clock, ArrowRight } from 'lucide-rea
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import Topbar from '../shared/Topbar';
 import StatCard from '../shared/StatCard';
-import { PROJECTS, TASKS, TEAM_MEMBERS, P_TEAMS, getProjectProgress, statusConfig } from '../../data/mockData';
+import { useOutletContext } from 'react-router-dom';
+
+import { PROJECTS, TASKS, TEAM_MEMBERS, P_TEAMS, getProjectProgress } from '../../data/mockData';
 import { PriorityBadge, StatusBadge, ProgressRing, AvatarGroup } from '../shared/UIComponents';
 
 export default function LeadDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // sidebar toggle fix (no UI change)
+  const { onMenuClick } = useOutletContext();
 
   const myProjects = PROJECTS.filter(p => p.created_by === user.u_id && !p.is_deleted);
   const myTasks = TASKS.filter(t => myProjects.some(p => p.p_id === t.p_id) && !t.is_deleted);
@@ -32,19 +37,24 @@ export default function LeadDashboard() {
     { name: 'Done', value: doneTasks, fill: '#10b981' }
   ];
 
-  const TT = ({ active, payload, label }) => active && payload?.length ? (
-    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: 10, padding: '9px 13px', fontSize: 12.5 }}>
-      <p style={{ fontWeight: 700, marginBottom: 4 }}>{label}</p>
-      {payload.map(p => <p key={p.name} style={{ color: p.fill }}>{p.name}: {p.value}</p>)}
-    </div>
-  ) : null;
+  const TT = ({ active, payload, label }) =>
+    active && payload?.length ? (
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)', borderRadius: 10, padding: '9px 13px', fontSize: 12.5 }}>
+        <p style={{ fontWeight: 700, marginBottom: 4 }}>{label}</p>
+        {payload.map(p => <p key={p.name} style={{ color: p.fill }}>{p.name}: {p.value}</p>)}
+      </div>
+    ) : null;
 
   return (
     <div>
-      {/* No actions prop → no "New Project" in topbar */}
-      <Topbar title={`Good morning, ${user.u_name.split(' ')[0]} 👋`} />
+      <Topbar
+        title={`Good morning, ${user.u_name.split(' ')[0]} 👋`}
+        onMenuClick={onMenuClick}
+      />
+
       <div className="page-container">
 
+        {/* Stats */}
         <div className="grid-4 stagger-children" style={{ marginBottom: 28 }}>
           <StatCard label="My Projects" value={myProjects.length} icon={FolderKanban} colorKey="purple" />
           <StatCard label="Total Tasks" value={myTasks.length} icon={CheckCircle2} colorKey="teal" sub={`${doneTasks} completed`} />
@@ -53,14 +63,22 @@ export default function LeadDashboard() {
         </div>
 
         <div className="grid-2" style={{ marginBottom: 20 }}>
+
           {/* My Projects */}
           <div className="card" style={{ padding: 22 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em' }}>My Projects</h3>
-              <button className="btn btn-ghost" style={{ fontSize: 12.5, color: 'var(--text-muted)', padding: '5px 9px' }} onClick={() => navigate('/lead/projects')}>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800 }}>
+                My Projects
+              </h3>
+              <button
+                className="btn btn-ghost"
+                style={{ fontSize: 12.5, color: 'var(--text-muted)', padding: '5px 9px' }}
+                onClick={() => navigate('/lead/projects')}
+              >
                 View all <ArrowRight size={13} />
               </button>
             </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               {myProjects.slice(0, 4).map(p => {
                 const progress = getProjectProgress(p.p_id);
@@ -68,22 +86,44 @@ export default function LeadDashboard() {
                 const memberIds = [...new Set(ptEntries.map(pt => pt.tm_id))];
                 const members = TEAM_MEMBERS.filter(tm => memberIds.includes(tm.tm_id));
                 const hc = progress >= 70 ? '#10b981' : progress >= 40 ? '#f59e0b' : '#f43f5e';
+
                 return (
                   <div
                     key={p.p_id}
                     onClick={() => navigate(`/lead/projects/${p.p_id}`)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 13px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', cursor: 'pointer', transition: 'all 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--border-active)'; e.currentTarget.style.background = 'var(--bg-hover)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'var(--bg-secondary)'; }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '11px 13px',
+                      background: 'var(--bg-secondary)',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border-subtle)',
+                      cursor: 'pointer'
+                    }}
                   >
                     <ProgressRing progress={progress} size={42} strokeWidth={4} color={hc} />
+
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontWeight: 700, fontSize: 13.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: 3 }}>{p.p_name}</p>
+                      <p style={{
+                        fontWeight: 700,
+                        fontSize: 13.5,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        marginBottom: 3
+                      }}>
+                        {p.p_name}
+                      </p>
+
                       <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                         <StatusBadge status={p.status} />
-                        <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{progress}%</span>
+                        <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                          {progress}%
+                        </span>
                       </div>
                     </div>
+
                     <AvatarGroup members={members} max={3} />
                   </div>
                 );
@@ -93,26 +133,37 @@ export default function LeadDashboard() {
 
           {/* Task Overview */}
           <div className="card" style={{ padding: 22 }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 18, letterSpacing: '-0.01em' }}>Task Overview</h3>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800 }}>
+              Task Overview
+            </h3>
+
             <ResponsiveContainer width="100%" height={195}>
               <BarChart data={taskStatusData} barSize={26}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
                 <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11.5} />
                 <YAxis stroke="var(--text-muted)" fontSize={11.5} />
                 <Tooltip content={<TT />} />
-                <Bar dataKey="value" radius={[5, 5, 0, 0]} name="Tasks">
-                  {taskStatusData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                <Bar dataKey="value" radius={[5, 5, 0, 0]}>
+                  {taskStatusData.map((e, i) => (
+                    <Cell key={i} fill={e.fill} />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
+
         </div>
 
-        {/* Upcoming Deadlines */}
+        {/* Upcoming Deadlines (FIXED RESPONSIVENESS) */}
         <div className="card" style={{ padding: 22 }}>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 18, letterSpacing: '-0.01em' }}>Upcoming Deadlines</h3>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
+            Upcoming Deadlines
+          </h3>
+
           {upcoming.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13.5, textAlign: 'center', padding: 20 }}>No upcoming deadlines 🎉</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13.5, textAlign: 'center', padding: 20 }}>
+              No upcoming deadlines 🎉
+            </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {upcoming.map(task => {
@@ -127,18 +178,55 @@ export default function LeadDashboard() {
                   <div
                     key={task.t_id}
                     onClick={() => project && navigate(`/lead/projects/${project.p_id}`)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '11px 14px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)', border: `1px solid ${isOverdue ? 'rgba(244,63,94,0.28)' : isUrgent ? 'rgba(245,158,11,0.28)' : 'var(--border-subtle)'}`, cursor: 'pointer', transition: 'all 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 13,
+                      padding: '11px 14px',
+                      background: 'var(--bg-secondary)',
+                      borderRadius: 'var(--radius-md)',
+                      border: `1px solid ${
+                        isOverdue
+                          ? 'rgba(244,63,94,0.28)'
+                          : isUrgent
+                          ? 'rgba(245,158,11,0.28)'
+                          : 'var(--border-subtle)'
+                      }`,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                      flexWrap: 'wrap'
+                    }}
                   >
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontWeight: 600, fontSize: 13.5, marginBottom: 2 }}>{task.title}</p>
-                      <p style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{project?.p_name}</p>
+                    <div style={{ flex: 1, minWidth: 140 }}>
+                      <p style={{ fontWeight: 600, fontSize: 13.5, marginBottom: 2 }}>
+                        {task.title}
+                      </p>
+                      <p style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                        {project?.p_name}
+                      </p>
                     </div>
+
                     <PriorityBadge priority={task.priority} />
                     <StatusBadge status={task.status} />
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: isOverdue ? '#f43f5e' : isUrgent ? '#f59e0b' : 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                      {isOverdue ? `${Math.abs(daysLeft)}d overdue` : daysLeft === 0 ? 'Due today' : `${daysLeft}d left`}
+
+                    <span
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        color: isOverdue
+                          ? '#f43f5e'
+                          : isUrgent
+                          ? '#f59e0b'
+                          : 'var(--text-secondary)',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0
+                      }}
+                    >
+                      {isOverdue
+                        ? `${Math.abs(daysLeft)}d overdue`
+                        : daysLeft === 0
+                        ? 'Due today'
+                        : `${daysLeft}d left`}
                     </span>
                   </div>
                 );
@@ -146,6 +234,7 @@ export default function LeadDashboard() {
             </div>
           )}
         </div>
+
       </div>
     </div>
   );

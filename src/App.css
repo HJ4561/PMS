@@ -36,3 +36,17 @@
     transform: rotate(360deg);
   }
 }
+/* Dashboard safety fix */
+.page-container {
+  min-height: calc(100vh - 62px);
+}
+
+/* Prevent chart overflow glitches */
+.recharts-wrapper {
+  font-family: var(--font-body);
+}
+
+/* Fix flex shrink issues in dashboard rows */
+.card {
+  min-width: 0;
+}

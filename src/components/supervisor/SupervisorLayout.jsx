@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../shared/Sidebar';
 import { LayoutDashboard, FolderKanban, Users, Bell } from 'lucide-react';
 
@@ -10,11 +11,25 @@ const navItems = [
 ];
 
 export default function SupervisorLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
   return (
     <div className="app-layout">
-      <Sidebar items={navItems} role="supervisor" />
+      <Sidebar
+        items={navItems}
+        role="supervisor"
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
+
       <main className="main-content">
-        <Outlet />
+        {/* 👇 THIS IS KEY */}
+        <Outlet context={{ onMenuClick: () => setSidebarOpen(true) }} />
       </main>
     </div>
   );
