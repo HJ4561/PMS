@@ -37,7 +37,7 @@ export default function Sidebar({ items, role, isOpen, onClose }) {
               <Zap size={16} color="white" fill="white" />
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 16, lineHeight: 1, letterSpacing: '-0.02em' }}>FlowDesk</p>
+              <p style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: 16, lineHeight: 1, letterSpacing: '-0.02em' }}>AEEL-PMS</p>
               <p style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 1, textTransform: 'capitalize' }}>{role} Portal</p>
             </div>
             {/* Close button — only visible on mobile */}
