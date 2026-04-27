@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Search, UserPlus, Trash2, Pencil } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import Topbar from '../shared/Topbar';
 import {
@@ -61,7 +61,7 @@ export default function LeadTeamMembers() {
     );
   });
 
-  //ADD MEMBER
+  // ADD MEMBER
   const handleAdd = () => {
     const { name, role, email, qualification, experience, skills } = form;
 
@@ -299,138 +299,125 @@ export default function LeadTeamMembers() {
         </div>
       </div>
 
-      {/* ADD MODAL */}
-      <Modal isOpen={showAdd} onClose={() => setShowAdd(false)} title="Add Team Member">
-
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-    {/* SECTION: BASIC INFO */}
-    <div>
-      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
-        BASIC INFORMATION
-      </p>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 10
-      }}>
-
-        <input className="input" placeholder="Full Name *"
-          value={form.name}
-          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-        />
-
-        <input className="input" placeholder="Role *"
-          value={form.role}
-          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-        />
-
-      </div>
-    </div>
-
-    {/* SECTION: CONTACT */}
-    <div>
-      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
-        CONTACT DETAILS
-      </p>
-
-      <input className="input" placeholder="Email *"
-        value={form.email}
-        onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-      />
-    </div>
-
-    {/* SECTION: PROFESSIONAL */}
-    <div>
-      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
-        PROFESSIONAL DETAILS
-      </p>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 10
-      }}>
-
-        <input className="input" placeholder="Qualification *"
-          value={form.qualification}
-          onChange={e => setForm(f => ({ ...f, qualification: e.target.value }))}
-        />
-
-        <input className="input" type="number" placeholder="Experience (years) *"
-          value={form.experience}
-          onChange={e => setForm(f => ({ ...f, experience: e.target.value }))}
-        />
-
-      </div>
-    </div>
-
-    {/* SECTION: SKILLS */}
-    <div>
-      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
-        SKILLS
-      </p>
-
-      <input className="input" placeholder="e.g. React, Node.js, UI Design *"
-        value={form.skills}
-        onChange={e => setForm(f => ({ ...f, skills: e.target.value }))}
-      />
-
-      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 5 }}>
-        Separate skills with commas
-      </p>
-    </div>
-
-    {/* SUBMIT BUTTON */}
-    <button
-      className="btn btn-primary"
-      onClick={handleAdd}
+      {/* DRAWER FIXED (NO MORE AWKWARD TOP TEXT) */}
+      <AnimatePresence>
+{drawer && (
+  <div
+    onClick={() => setDrawer(null)}
+    style={{
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.55)',
+      backdropFilter: 'blur(6px)',
+      zIndex: 99999,
+      display: 'flex',
+      justifyContent: 'flex-end'
+    }}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
       style={{
-        padding: '10px 14px',
-        fontWeight: 600,
-        borderRadius: 10,
-        marginTop: 4
+        width: 360,
+        height: '100%',
+        background: 'var(--bg-card)',
+        borderLeft: '1px solid var(--border-subtle)',
+        padding: 20,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14,
+
+        // ✅ SIMPLE SMOOTH ANIMATION (NO FRAMER ISSUES)
+        transform: 'translateX(0)',
+        animation: 'drawerSlide 0.25s ease-out'
       }}
     >
-      + Add Member
-    </button>
+      {/* HEADER */}
+      <div>
+        <h2 style={{ fontSize: 18, fontWeight: 900 }}>
+          {drawer.name}
+        </h2>
 
-  </div>
+        <span className="badge badge-purple">
+          {drawer.role}
+        </span>
+      </div>
 
-</Modal>
+      {/* INFO CARD */}
+      <div
+        style={{
+          padding: 14,
+          borderRadius: 12,
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border-subtle)'
+        }}
+      >
+        <p style={{ fontSize: 12, marginBottom: 6 }}>
+          <b>Email:</b> {drawer.email || 'Not provided'}
+        </p>
 
-      {/* EDIT MODAL */}
-      <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Edit Member">
-        <input className="input"
-          value={form.name}
-          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-        />
-        <input className="input"
-          value={form.role}
-          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-        />
-        <button className="btn btn-primary" onClick={handleUpdate}>Update</button>
-      </Modal>
+        <p style={{ fontSize: 12 }}>
+          <b>Experience:</b> {drawer.experience} years
+        </p>
+      </div>
 
-      {/* DRAWER */}
-      {drawer && (
-        <div
-          className="drawer"
-          onClick={() => setDrawer(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.4)',
-            zIndex: 9999
-          }}
-        >
-          <div className="drawer-content">
-            <h2>{drawer.name}</h2>
-            <p>{drawer.role}</p>
-          </div>
+      {/* SKILLS */}
+      <div>
+        <p style={{ fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
+          SKILLS
+        </p>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {(drawer.skills || '').split(',').map((s, i) => (
+            <span
+              key={i}
+              style={{
+                fontSize: 10,
+                padding: '4px 8px',
+                borderRadius: 6,
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-secondary)'
+              }}
+            >
+              {s.trim()}
+            </span>
+          ))}
         </div>
-      )}
+      </div>
+
+      {/* CLOSE BUTTON */}
+      <div style={{ marginTop: 'auto' }}>
+        <button
+  className="btn btn-secondary"
+  onClick={() => setDrawer(null)}
+  style={{
+    marginTop: 'auto',
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center'
+  }}
+>
+  Close
+</button>
+      </div>
+
+      {/* ANIMATION KEYFRAME */}
+      <style>{`
+        @keyframes drawerSlide {
+          from {
+            transform: translateX(100%);
+          }
+          to {
+            transform: translateX(0%);
+          }
+        }
+      `}</style>
+    </div>
+  </div>
+)}
+      </AnimatePresence>
 
     </div>
   );

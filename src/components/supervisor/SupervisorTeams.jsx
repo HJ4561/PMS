@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Search, UserPlus, Trash2, Pencil } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 
 import Topbar from '../shared/Topbar';
@@ -58,7 +58,7 @@ export default function SupervisorTeams() {
     m.skills.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ✅ ADD MEMBER
+  // ADD MEMBER
   const handleAdd = () => {
     if (!form.name.trim() || !form.role.trim()) {
       return toast.error('Name and role required');
@@ -82,7 +82,7 @@ export default function SupervisorTeams() {
     toast.success('Member added');
   };
 
-  // ✅ DELETE
+  // DELETE
   const handleDelete = (id) => {
     const index = TEAM_MEMBERS.findIndex(m => m.tm_id === id);
 
@@ -93,14 +93,14 @@ export default function SupervisorTeams() {
     }
   };
 
-  // ✅ EDIT OPEN
+  // EDIT
   const openEdit = (member) => {
     setSelected(member);
     setForm(member);
     setShowEdit(true);
   };
 
-  // ✅ UPDATE
+  // UPDATE
   const handleUpdate = () => {
     const index = TEAM_MEMBERS.findIndex(m => m.tm_id === selected.tm_id);
 
@@ -120,6 +120,7 @@ export default function SupervisorTeams() {
 
   return (
     <div>
+
       {/* TOPBAR */}
       <Topbar
         title="Teams & Members"
@@ -162,11 +163,6 @@ export default function SupervisorTeams() {
             const stats = getMemberStats(member.tm_id);
             const color = member.avatar_color || colors[i % colors.length];
             const addedBy = getUserById(member.added_by);
-
-            const memberProjects = P_TEAMS
-              .filter(pt => pt.tm_id === member.tm_id)
-              .map(pt => PROJECTS.find(p => p.p_id === pt.p_id))
-              .filter(Boolean);
 
             const onTimeRate =
               stats.completedTasks > 0
@@ -238,15 +234,11 @@ export default function SupervisorTeams() {
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    <h3 style={{
-                      fontFamily: 'var(--font-display)',
-                      fontWeight: 800,
-                      fontSize: 14.5
-                    }}>
+                    <h3 style={{ fontWeight: 800, fontSize: 14.5 }}>
                       {member.name}
                     </h3>
 
-                    <span className="badge badge-purple">
+                    <span className="badge badge-purple" style={{ fontSize: 10.5 }}>
                       {member.role}
                     </span>
                   </div>
@@ -277,15 +269,8 @@ export default function SupervisorTeams() {
                     { label: 'Tasks', value: stats.totalTasks },
                     { label: 'Done', value: stats.completedTasks },
                     { label: 'Active', value: stats.inProgressTasks }
-                  ].map((s, idx) => (
-                    <div
-                      key={s.label}
-                      style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        padding: 10
-                      }}
-                    >
+                  ].map(s => (
+                    <div key={s.label} style={{ flex: 1, textAlign: 'center', padding: 10 }}>
                       <p style={{ fontWeight: 900 }}>{s.value}</p>
                       <p style={{ fontSize: 10 }}>{s.label}</p>
                     </div>
@@ -294,11 +279,7 @@ export default function SupervisorTeams() {
 
                 {/* PERFORMANCE */}
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <ProgressRing
-                    progress={onTimeRate}
-                    size={44}
-                    strokeWidth={4}
-                  />
+                  <ProgressRing progress={onTimeRate} size={44} strokeWidth={4} />
 
                   <div>
                     <p>{onTimeRate}% On-time</p>
@@ -317,147 +298,106 @@ export default function SupervisorTeams() {
         </div>
       </div>
 
-      {/* ADD MODAL */}
-      <Modal isOpen={showAdd} onClose={() => setShowAdd(false)} title="Add Team Member">
+      {/* ✅ FIXED DRAWER (MATCHES LEAD TEAM MEMBERS EXACTLY) */}
+      <AnimatePresence>
+        {drawer && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setDrawer(null)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.55)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 99999,
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}
+          >
+            <motion.div
+              initial={{ x: 40, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 40, opacity: 0 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: 360,
+                height: '100%',
+                background: 'var(--bg-card)',
+                borderLeft: '1px solid var(--border-subtle)',
+                padding: 20,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 14
+              }}
+            >
+              <h2 style={{ fontSize: 18, fontWeight: 900 }}>
+                {drawer.name}
+              </h2>
 
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <span
+  className="badge badge-purple"
+  style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '2px 8px',
+    fontSize: 10.5,
+    fontWeight: 600,
+    width: 'fit-content',
+    borderRadius: 999
+  }}
+>
+  {drawer.role}
+</span>
 
-    {/* BASIC INFO */}
-    <div>
-      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
-        BASIC INFORMATION
-      </p>
+              <div style={{
+                padding: 14,
+                borderRadius: 12,
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-subtle)'
+              }}>
+                <p style={{ fontSize: 12 }}>
+                  <b>Email:</b> {drawer.email || 'Not provided'}
+                </p>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 10
-      }}>
-        <input
-          className="input"
-          placeholder="Full Name *"
-          value={form.name}
-          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-        />
+                <p style={{ fontSize: 12 }}>
+                  <b>Experience:</b> {drawer.experience} years
+                </p>
+              </div>
 
-        <input
-          className="input"
-          placeholder="Role *"
-          value={form.role}
-          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-        />
-      </div>
-    </div>
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 700 }}>SKILLS</p>
 
-    {/* CONTACT */}
-    <div>
-      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
-        CONTACT DETAILS
-      </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(drawer.skills || '').split(',').map((s, i) => (
+                    <span key={i} className="badge badge-gray">
+                      {s.trim()}
+                    </span>
+                  ))}
+                </div>
+              </div>
 
-      <input
-        className="input"
-        placeholder="Email *"
-        value={form.email}
-        onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-      />
-    </div>
+              <button
+  className="btn btn-secondary"
+  onClick={() => setDrawer(null)}
+  style={{
+    marginTop: 'auto',
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center'
+  }}
+>
+  Close
+</button>
 
-    {/* PROFESSIONAL */}
-    <div>
-      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
-        PROFESSIONAL DETAILS
-      </p>
-
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 10
-      }}>
-        <input
-          className="input"
-          placeholder="Qualification *"
-          value={form.qualification}
-          onChange={e => setForm(f => ({ ...f, qualification: e.target.value }))}
-        />
-
-        <input
-          className="input"
-          type="number"
-          placeholder="Experience (years) *"
-          value={form.experience}
-          onChange={e => setForm(f => ({ ...f, experience: e.target.value }))}
-        />
-      </div>
-    </div>
-
-    {/* SKILLS */}
-    <div>
-      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
-        SKILLS
-      </p>
-
-      <input
-        className="input"
-        placeholder="e.g. React, UI Design, Node.js *"
-        value={form.skills}
-        onChange={e => setForm(f => ({ ...f, skills: e.target.value }))}
-      />
-
-      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 5 }}>
-        Separate skills with commas
-      </p>
-    </div>
-
-    {/* SUBMIT */}
-    <button
-      className="btn btn-primary"
-      onClick={handleAdd}
-      style={{
-        padding: '10px 14px',
-        fontWeight: 600,
-        borderRadius: 10
-      }}
-    >
-      + Add Member
-    </button>
-
-  </div>
-
-</Modal>
-
-      {/* EDIT MODAL */}
-      <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Edit Member">
-        <input className="input" value={form.name}
-          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-        />
-        <input className="input" value={form.role}
-          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-        />
-
-        <button className="btn btn-primary" onClick={handleUpdate}>
-          Update
-        </button>
-      </Modal>
-
-      {/* DRAWER (IMPORTANT FIX — OUTSIDE GRID) */}
-      {drawer && (
-        <div
-          className="drawer"
-          onClick={() => setDrawer(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.4)',
-            zIndex: 9999
-          }}
-        >
-          <div className="drawer-content">
-            <h2>{drawer.name}</h2>
-            <p>{drawer.role}</p>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );
