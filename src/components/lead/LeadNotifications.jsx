@@ -14,7 +14,6 @@ const typeColors = {
 
 export default function LeadNotifications() {
 
-  // ✅ FIXED (was outside before)
   const { onMenuClick } = useOutletContext();
 
   const { notifications, markNotifRead, markAllRead, unreadCount } = useAuth();

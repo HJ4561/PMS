@@ -1,87 +1,464 @@
-import { useAuth } from '../../context/AuthContext';
-import Topbar from '../shared/Topbar';
-import { Bell, CheckCheck, Inbox } from 'lucide-react';
-import { useOutletContext } from 'react-router-dom';
-import { EmptyState } from '../shared/UIComponents';
+// components/supervisor/SupervisorTeams.jsx
 
-const typeColors = {
-  project_update: '#6c63ff',
-  task_complete: '#10b981',
-  comment: '#2dd4bf',
-  task_assigned: '#fbbf24',
-  project_created: '#f43f5e'
+import { useState } from 'react';
+import { Search, UserPlus, Trash2, Pencil } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useOutletContext } from 'react-router-dom';
+
+import Topbar from '../shared/Topbar';
+import {
+  TEAM_MEMBERS,
+  PROJECTS,
+  P_TEAMS,
+  getMemberStats,
+  getUserById
+} from '../../data/mockData';
+
+import { ProgressRing, Modal } from '../shared/UIComponents';
+import toast from 'react-hot-toast';
+
+const defaultForm = {
+  name: '',
+  role: '',
+  qualification: '',
+  experience: '',
+  skills: '',
+  email: ''
 };
 
-export default function LeadNotifications() {
-  const { onMenuClick } = useOutletContext(); // ✅ FIXED HERE
-  const { notifications, markNotifRead, markAllRead, unreadCount } = useAuth();
+export default function SupervisorTeams() {
+  const { onMenuClick } = useOutletContext();
+
+  const [search, setSearch] = useState('');
+  const [members, setMembers] = useState(
+    TEAM_MEMBERS.filter(m => !m.is_deleted)
+  );
+
+  const [showAdd, setShowAdd] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [drawer, setDrawer] = useState(null);
+
+  const [form, setForm] = useState(defaultForm);
+
+  const colors = [
+    '#6366f1',
+    '#2dd4bf',
+    '#f43f5e',
+    '#f59e0b',
+    '#10b981',
+    '#f97316',
+    '#ec4899',
+    '#a78bfa'
+  ];
+
+  const filtered = members.filter(m =>
+    m.name.toLowerCase().includes(search.toLowerCase()) ||
+    m.role.toLowerCase().includes(search.toLowerCase()) ||
+    m.skills.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // ✅ ADD MEMBER
+  const handleAdd = () => {
+    if (!form.name.trim() || !form.role.trim()) {
+      return toast.error('Name and role required');
+    }
+
+    const newMember = {
+      tm_id: Date.now(),
+      ...form,
+      experience: parseInt(form.experience) || 0,
+      added_by: 1,
+      is_deleted: false,
+      avatar_color: colors[Math.floor(Math.random() * colors.length)]
+    };
+
+    TEAM_MEMBERS.push(newMember);
+    setMembers(TEAM_MEMBERS.filter(m => !m.is_deleted));
+
+    setShowAdd(false);
+    setForm(defaultForm);
+
+    toast.success('Member added');
+  };
+
+  // ✅ DELETE
+  const handleDelete = (id) => {
+    const index = TEAM_MEMBERS.findIndex(m => m.tm_id === id);
+
+    if (index !== -1) {
+      TEAM_MEMBERS[index].is_deleted = true;
+      setMembers(TEAM_MEMBERS.filter(m => !m.is_deleted));
+      toast.success('Member removed');
+    }
+  };
+
+  // ✅ EDIT OPEN
+  const openEdit = (member) => {
+    setSelected(member);
+    setForm(member);
+    setShowEdit(true);
+  };
+
+  // ✅ UPDATE
+  const handleUpdate = () => {
+    const index = TEAM_MEMBERS.findIndex(m => m.tm_id === selected.tm_id);
+
+    if (index !== -1) {
+      TEAM_MEMBERS[index] = {
+        ...TEAM_MEMBERS[index],
+        ...form,
+        experience: parseInt(form.experience) || 0
+      };
+
+      setMembers(TEAM_MEMBERS.filter(m => !m.is_deleted));
+      setShowEdit(false);
+
+      toast.success('Updated successfully');
+    }
+  };
 
   return (
     <div>
+      {/* TOPBAR */}
       <Topbar
-        title="Notifications"
+        title="Teams & Members"
         onMenuClick={onMenuClick}
         actions={
-          unreadCount > 0 && (
-            <button className="btn btn-secondary btn-sm" onClick={markAllRead}>
-              <CheckCheck size={14} /> Mark all read
-            </button>
-          )
+          <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>
+            <UserPlus size={14} /> Add Member
+          </button>
         }
       />
 
       <div className="page-container">
-        {notifications.length === 0 ? (
-          <EmptyState
-            icon={Inbox}
-            title="All caught up!"
-            desc="No notifications yet. Updates will appear here."
+
+        {/* SEARCH */}
+        <div style={{ position: 'relative', marginBottom: 22, maxWidth: 380 }}>
+          <Search
+            size={14}
+            style={{
+              position: 'absolute',
+              left: 11,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'var(--text-muted)'
+            }}
           />
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {notifications.map(n => (
-              <div
-                key={n.n_id}
-                className="card"
-                onClick={() => markNotifRead(n.n_id)}
-                style={{
-                  padding: '16px 20px',
-                  display: 'flex',
-                  gap: 14,
-                  cursor: 'pointer',
-                  background: n.is_read ? 'var(--bg-card)' : 'rgba(108,99,255,0.05)',
+
+          <input
+            className="input"
+            placeholder="Search by name, role, or skills…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ paddingLeft: 34 }}
+          />
+        </div>
+
+        {/* GRID */}
+        <div className="grid-auto stagger-children">
+
+          {filtered.map((member, i) => {
+            const stats = getMemberStats(member.tm_id);
+            const color = member.avatar_color || colors[i % colors.length];
+            const addedBy = getUserById(member.added_by);
+
+            const memberProjects = P_TEAMS
+              .filter(pt => pt.tm_id === member.tm_id)
+              .map(pt => PROJECTS.find(p => p.p_id === pt.p_id))
+              .filter(Boolean);
+
+            const onTimeRate =
+              stats.completedTasks > 0
+                ? Math.round((stats.completedOnTime / stats.completedTasks) * 100)
+                : 0;
+
+            const initials = member.name
+              .split(' ')
+              .map(n => n[0])
+              .join('')
+              .toUpperCase();
+
+            return (
+              <motion.div
+                key={member.tm_id}
+                className="member-card animate-fade-in"
+                whileHover={{ scale: 1.03 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={(e, info) => {
+                  if (info.offset.x < -120) handleDelete(member.tm_id);
                 }}
+                onClick={() => setDrawer(member)}
               >
+
+                {/* ACTIONS */}
                 <div style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: '50%',
-                  background: `${typeColors[n.type] || '#6c63ff'}18`,
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  gap: 6
                 }}>
-                  <Bell size={16} style={{ color: typeColors[n.type] || '#6c63ff' }} />
+                  <button
+                    className="btn btn-secondary btn-icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEdit(member);
+                    }}
+                  >
+                    <Pencil size={12} />
+                  </button>
+
+                  <button
+                    className="btn btn-danger btn-icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(member.tm_id);
+                    }}
+                  >
+                    <Trash2 size={12} />
+                  </button>
                 </div>
 
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 14 }}>{n.message}</p>
-                  <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>{n.created_at}</p>
+                {/* HEADER */}
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div
+                    className="avatar avatar-lg"
+                    style={{
+                      background: color + '22',
+                      color,
+                      border: `2px solid ${color}40`,
+                      width: 50,
+                      height: 50,
+                      fontSize: 17
+                    }}
+                  >
+                    {initials}
+                  </div>
+
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{
+                      fontFamily: 'var(--font-display)',
+                      fontWeight: 800,
+                      fontSize: 14.5
+                    }}>
+                      {member.name}
+                    </h3>
+
+                    <span className="badge badge-purple">
+                      {member.role}
+                    </span>
+                  </div>
                 </div>
 
-                {!n.is_read && (
-                  <div style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: 'var(--accent-primary)'
-                  }} />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+                {/* INFO */}
+                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                  {member.qualification} · {member.experience} yrs exp
+                </p>
+
+                {/* SKILLS */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {member.skills?.split(', ').slice(0, 4).map(s => (
+                    <span key={s} className="badge badge-gray" style={{ fontSize: 10.5 }}>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+
+                {/* STATS */}
+                <div style={{
+                  display: 'flex',
+                  background: 'var(--bg-secondary)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-subtle)'
+                }}>
+                  {[
+                    { label: 'Tasks', value: stats.totalTasks },
+                    { label: 'Done', value: stats.completedTasks },
+                    { label: 'Active', value: stats.inProgressTasks }
+                  ].map((s, idx) => (
+                    <div
+                      key={s.label}
+                      style={{
+                        flex: 1,
+                        textAlign: 'center',
+                        padding: 10
+                      }}
+                    >
+                      <p style={{ fontWeight: 900 }}>{s.value}</p>
+                      <p style={{ fontSize: 10 }}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* PERFORMANCE */}
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <ProgressRing
+                    progress={onTimeRate}
+                    size={44}
+                    strokeWidth={4}
+                  />
+
+                  <div>
+                    <p>{onTimeRate}% On-time</p>
+                    {addedBy && (
+                      <p style={{ fontSize: 11 }}>
+                        Added by {addedBy.u_name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+              </motion.div>
+            );
+          })}
+
+        </div>
       </div>
+
+      {/* ADD MODAL */}
+      <Modal isOpen={showAdd} onClose={() => setShowAdd(false)} title="Add Team Member">
+
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+    {/* BASIC INFO */}
+    <div>
+      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
+        BASIC INFORMATION
+      </p>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 10
+      }}>
+        <input
+          className="input"
+          placeholder="Full Name *"
+          value={form.name}
+          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+        />
+
+        <input
+          className="input"
+          placeholder="Role *"
+          value={form.role}
+          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+        />
+      </div>
+    </div>
+
+    {/* CONTACT */}
+    <div>
+      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
+        CONTACT DETAILS
+      </p>
+
+      <input
+        className="input"
+        placeholder="Email *"
+        value={form.email}
+        onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+      />
+    </div>
+
+    {/* PROFESSIONAL */}
+    <div>
+      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
+        PROFESSIONAL DETAILS
+      </p>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 10
+      }}>
+        <input
+          className="input"
+          placeholder="Qualification *"
+          value={form.qualification}
+          onChange={e => setForm(f => ({ ...f, qualification: e.target.value }))}
+        />
+
+        <input
+          className="input"
+          type="number"
+          placeholder="Experience (years) *"
+          value={form.experience}
+          onChange={e => setForm(f => ({ ...f, experience: e.target.value }))}
+        />
+      </div>
+    </div>
+
+    {/* SKILLS */}
+    <div>
+      <p style={{ fontSize: 11, fontWeight: 600, marginBottom: 6, color: 'var(--text-muted)' }}>
+        SKILLS
+      </p>
+
+      <input
+        className="input"
+        placeholder="e.g. React, UI Design, Node.js *"
+        value={form.skills}
+        onChange={e => setForm(f => ({ ...f, skills: e.target.value }))}
+      />
+
+      <p style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 5 }}>
+        Separate skills with commas
+      </p>
+    </div>
+
+    {/* SUBMIT */}
+    <button
+      className="btn btn-primary"
+      onClick={handleAdd}
+      style={{
+        padding: '10px 14px',
+        fontWeight: 600,
+        borderRadius: 10
+      }}
+    >
+      + Add Member
+    </button>
+
+  </div>
+
+</Modal>
+
+      {/* EDIT MODAL */}
+      <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Edit Member">
+        <input className="input" value={form.name}
+          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+        />
+        <input className="input" value={form.role}
+          onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+        />
+
+        <button className="btn btn-primary" onClick={handleUpdate}>
+          Update
+        </button>
+      </Modal>
+
+      {/* DRAWER (IMPORTANT FIX — OUTSIDE GRID) */}
+      {drawer && (
+        <div
+          className="drawer"
+          onClick={() => setDrawer(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.4)',
+            zIndex: 9999
+          }}
+        >
+          <div className="drawer-content">
+            <h2>{drawer.name}</h2>
+            <p>{drawer.role}</p>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

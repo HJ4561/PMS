@@ -154,7 +154,7 @@ export default function LeadDashboard() {
 
         </div>
 
-        {/* Upcoming Deadlines (FIXED RESPONSIVENESS) */}
+        {/* Upcoming Deadlines */}
         <div className="card" style={{ padding: 22 }}>
           <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
             Upcoming Deadlines
