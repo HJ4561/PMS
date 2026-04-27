@@ -1,19 +1,14 @@
 // components/lead/LeadTeamMembers.jsx
-
 import { useState } from 'react';
 import { Search, UserPlus, Trash2, Pencil } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-
 import Topbar from '../shared/Topbar';
 import {
   TEAM_MEMBERS,
-  PROJECTS,
-  P_TEAMS,
   getMemberStats,
   getUserById
 } from '../../data/mockData';
-
 import { ProgressRing, Modal } from '../shared/UIComponents';
 import toast from 'react-hot-toast';
 
@@ -38,7 +33,6 @@ export default function LeadTeamMembers() {
   const [showEdit, setShowEdit] = useState(false);
   const [selected, setSelected] = useState(null);
   const [drawer, setDrawer] = useState(null);
-
   const [form, setForm] = useState(defaultForm);
 
   const colors = [
@@ -83,17 +77,14 @@ export default function LeadTeamMembers() {
 
     TEAM_MEMBERS.push(newMember);
     setMembers(TEAM_MEMBERS.filter(m => !m.is_deleted));
-
     setShowAdd(false);
     setForm(defaultForm);
-
     toast.success('Member added successfully');
   };
 
   // DELETE
   const handleDelete = (id) => {
     const index = TEAM_MEMBERS.findIndex(m => m.tm_id === id);
-
     if (index !== -1) {
       TEAM_MEMBERS[index].is_deleted = true;
       setMembers(TEAM_MEMBERS.filter(m => !m.is_deleted));
@@ -111,24 +102,36 @@ export default function LeadTeamMembers() {
   // UPDATE
   const handleUpdate = () => {
     const index = TEAM_MEMBERS.findIndex(m => m.tm_id === selected.tm_id);
-
     if (index !== -1) {
       TEAM_MEMBERS[index] = {
         ...TEAM_MEMBERS[index],
         ...form,
         experience: parseInt(form.experience) || 0
       };
-
       setMembers(TEAM_MEMBERS.filter(m => !m.is_deleted));
       setShowEdit(false);
-
       toast.success('Updated successfully');
     }
   };
 
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const closeAddModal = () => {
+    setShowAdd(false);
+    setForm(defaultForm);
+  };
+
+  const closeEditModal = () => {
+    setShowEdit(false);
+    setSelected(null);
+    setForm(defaultForm);
+  };
+
   return (
     <div>
-
       {/* TOPBAR */}
       <Topbar
         title="Team Members"
@@ -141,7 +144,6 @@ export default function LeadTeamMembers() {
       />
 
       <div className="page-container">
-
         {/* SEARCH */}
         <div style={{ position: 'relative', marginBottom: 22, maxWidth: 380 }}>
           <Search
@@ -154,7 +156,6 @@ export default function LeadTeamMembers() {
               color: 'var(--text-muted)'
             }}
           />
-
           <input
             className="input"
             placeholder="Search by name, role, or skills…"
@@ -170,14 +171,11 @@ export default function LeadTeamMembers() {
             const stats = getMemberStats(member.tm_id);
             const color = member.avatar_color || colors[i % colors.length];
             const addedBy = getUserById(member.added_by);
-
             const skills = member.skills || '';
-
             const onTimeRate =
               stats.completedTasks > 0
                 ? Math.round((stats.completedOnTime / stats.completedTasks) * 100)
                 : 0;
-
             const initials = member.name
               .split(' ')
               .map(n => n[0])
@@ -196,7 +194,6 @@ export default function LeadTeamMembers() {
                 }}
                 onClick={() => setDrawer(member)}
               >
-
                 {/* ACTIONS */}
                 <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 6 }}>
                   <button
@@ -208,7 +205,6 @@ export default function LeadTeamMembers() {
                   >
                     <Pencil size={12} />
                   </button>
-
                   <button
                     className="btn btn-danger btn-icon"
                     onClick={(e) => {
@@ -235,12 +231,10 @@ export default function LeadTeamMembers() {
                   >
                     {initials}
                   </div>
-
                   <div style={{ flex: 1 }}>
                     <h3 style={{ fontWeight: 800, fontSize: 14.5 }}>
                       {member.name}
                     </h3>
-
                     <span className="badge badge-purple" style={{ fontSize: 10.5 }}>
                       {member.role}
                     </span>
@@ -292,133 +286,243 @@ export default function LeadTeamMembers() {
                     )}
                   </div>
                 </div>
-
               </motion.div>
             );
           })}
         </div>
       </div>
 
-      {/* DRAWER FIXED (NO MORE AWKWARD TOP TEXT) */}
+      {/* DRAWER */}
       <AnimatePresence>
-{drawer && (
-  <div
-    onClick={() => setDrawer(null)}
-    style={{
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0,0,0,0.55)',
-      backdropFilter: 'blur(6px)',
-      zIndex: 99999,
-      display: 'flex',
-      justifyContent: 'flex-end'
-    }}
-  >
-    <div
-      onClick={(e) => e.stopPropagation()}
-      style={{
-        width: 360,
-        height: '100%',
-        background: 'var(--bg-card)',
-        borderLeft: '1px solid var(--border-subtle)',
-        padding: 20,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 14,
-
-        // ✅ SIMPLE SMOOTH ANIMATION (NO FRAMER ISSUES)
-        transform: 'translateX(0)',
-        animation: 'drawerSlide 0.25s ease-out'
-      }}
-    >
-      {/* HEADER */}
-      <div>
-        <h2 style={{ fontSize: 18, fontWeight: 900 }}>
-          {drawer.name}
-        </h2>
-
-        <span className="badge badge-purple">
-          {drawer.role}
-        </span>
-      </div>
-
-      {/* INFO CARD */}
-      <div
-        style={{
-          padding: 14,
-          borderRadius: 12,
-          background: 'var(--bg-secondary)',
-          border: '1px solid var(--border-subtle)'
-        }}
-      >
-        <p style={{ fontSize: 12, marginBottom: 6 }}>
-          <b>Email:</b> {drawer.email || 'Not provided'}
-        </p>
-
-        <p style={{ fontSize: 12 }}>
-          <b>Experience:</b> {drawer.experience} years
-        </p>
-      </div>
-
-      {/* SKILLS */}
-      <div>
-        <p style={{ fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
-          SKILLS
-        </p>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {(drawer.skills || '').split(',').map((s, i) => (
-            <span
-              key={i}
+        {drawer && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setDrawer(null)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.55)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 99999,
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}
+          >
+            <motion.div
+              initial={{ x: 40, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 40, opacity: 0 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              onClick={(e) => e.stopPropagation()}
               style={{
-                fontSize: 10,
-                padding: '4px 8px',
-                borderRadius: 6,
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-secondary)'
+                width: 360,
+                height: '100%',
+                background: 'var(--bg-card)',
+                borderLeft: '1px solid var(--border-subtle)',
+                padding: 20,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 14
               }}
             >
-              {s.trim()}
-            </span>
-          ))}
-        </div>
-      </div>
+              <h2 style={{ fontSize: 18, fontWeight: 900 }}>
+                {drawer.name}
+              </h2>
 
-      {/* CLOSE BUTTON */}
-      <div style={{ marginTop: 'auto' }}>
-        <button
-  className="btn btn-secondary"
-  onClick={() => setDrawer(null)}
-  style={{
-    marginTop: 'auto',
-    width: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    textAlign: 'center'
-  }}
->
-  Close
-</button>
-      </div>
+              <span
+                className="badge badge-purple"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '2px 8px',
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  width: 'fit-content',
+                  borderRadius: 999
+                }}
+              >
+                {drawer.role}
+              </span>
 
-      {/* ANIMATION KEYFRAME */}
-      <style>{`
-        @keyframes drawerSlide {
-          from {
-            transform: translateX(100%);
-          }
-          to {
-            transform: translateX(0%);
-          }
-        }
-      `}</style>
-    </div>
-  </div>
-)}
+              <div style={{
+                padding: 14,
+                borderRadius: 12,
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-subtle)'
+              }}>
+                <p style={{ fontSize: 12 }}>
+                  <b>Email:</b> {drawer.email || 'Not provided'}
+                </p>
+                <p style={{ fontSize: 12 }}>
+                  <b>Experience:</b> {drawer.experience} years
+                </p>
+              </div>
+
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 700 }}>SKILLS</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(drawer.skills || '').split(',').map((s, i) => (
+                    <span key={i} className="badge badge-gray">
+                      {s.trim()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                className="btn btn-secondary"
+                onClick={() => setDrawer(null)}
+                style={{
+                  marginTop: 'auto',
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  textAlign: 'center'
+                }}
+              >
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
+      {/* ADD MODAL */}
+      <Modal
+        isOpen={showAdd}
+        onClose={closeAddModal}
+        title="Add New Team Member"
+      >
+        <input
+          name="name"
+          placeholder="Full Name"
+          value={form.name}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+        <input
+          name="role"
+          placeholder="Role"
+          value={form.role}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+        <input
+          name="email"
+          type="email"
+          placeholder="Email Address"
+          value={form.email}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+        <input
+          name="qualification"
+          placeholder="Qualification"
+          value={form.qualification}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+        <input
+          name="experience"
+          type="number"
+          placeholder="Years of Experience"
+          value={form.experience}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+        <input
+          name="skills"
+          placeholder="Skills (comma separated)"
+          value={form.skills}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 20 }}
+        />
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-secondary flex-1" onClick={closeAddModal}>
+            Cancel
+          </button>
+          <button className="btn btn-primary flex-1" onClick={handleAdd}>
+            Add Member
+          </button>
+        </div>
+      </Modal>
+
+      {/* EDIT MODAL */}
+      <Modal
+        isOpen={showEdit}
+        onClose={closeEditModal}
+        title="Edit Team Member"
+      >
+        <input
+          name="name"
+          placeholder="Full Name"
+          value={form.name}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+        <input
+          name="role"
+          placeholder="Role"
+          value={form.role}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+        <input
+          name="email"
+          type="email"
+          placeholder="Email Address"
+          value={form.email}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+        <input
+          name="qualification"
+          placeholder="Qualification"
+          value={form.qualification}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+        <input
+          name="experience"
+          type="number"
+          placeholder="Years of Experience"
+          value={form.experience}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 12 }}
+        />
+        <input
+          name="skills"
+          placeholder="Skills (comma separated)"
+          value={form.skills}
+          onChange={handleFormChange}
+          className="input"
+          style={{ marginBottom: 20 }}
+        />
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-secondary flex-1" onClick={closeEditModal}>
+            Cancel
+          </button>
+          <button className="btn btn-primary flex-1" onClick={handleUpdate}>
+            Update Member
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
