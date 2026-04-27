@@ -69,7 +69,7 @@ function PageLoader() {
           fontSize: 14,
           fontFamily: "var(--font-display)",
         }}>
-          Loading FlowDesk...
+          Loading AEEL-PMS...
         </p>
       </div>
     </div>
