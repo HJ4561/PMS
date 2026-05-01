@@ -57,7 +57,7 @@ export default function Login() {
             <div style={{ width: 44, height: 44, background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px var(--accent-glow)' }}>
               <Zap size={22} color="white" fill="white" />
             </div>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px' }}>FlowDesk</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800, letterSpacing: '-0.5px' }}>AEEL-PMS</span>
           </div>
 
           <h1 style={{ fontSize: 42, fontWeight: 800, lineHeight: 1.1, marginBottom: 12, letterSpacing: '-1px' }}>

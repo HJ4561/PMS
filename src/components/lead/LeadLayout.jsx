@@ -5,9 +5,9 @@ import { LayoutDashboard, FolderKanban, Users, Bell } from 'lucide-react';
 
 const navItems = [
   { path: '/lead', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { path: '/lead/notifications', label: 'Notifications', icon: Bell },
   { path: '/lead/projects', label: 'My Projects', icon: FolderKanban },
-  { path: '/lead/team-members', label: 'Team Members', icon: Users },
-  { path: '/lead/notifications', label: 'Notifications', icon: Bell }
+  { path: '/lead/team-members', label: 'Team Members', icon: Users }
 ];
 
 export default function LeadLayout() {

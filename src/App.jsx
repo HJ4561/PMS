@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import ProfilePage from "./components/shared/ProfilePage";
 
 import LeadTaskDetail from "./components/lead/LeadTaskDetail";
 import SupervisorTaskDetail from "./components/supervisor/SupervisorTaskDetail";
@@ -18,6 +19,7 @@ import SupervisorProjects from "./components/supervisor/SupervisorProjects";
 import SupervisorProjectDetail from "./components/supervisor/SupervisorProjectDetail";
 import SupervisorTeams from "./components/supervisor/SupervisorTeams";
 import SupervisorNotifications from "./components/supervisor/SupervisorNotifications";
+import SupervisorLeads from './components/supervisor/SupervisorLeads';
 
 // LEAD
 import LeadLayout from "./components/lead/LeadLayout";
@@ -98,7 +100,8 @@ function AppRoutes() {
       <Route path="/verify-email" element={<EmailVerification />} />
 
       {/* ================= SUPERVISOR ================= */}
-      <Route
+
+<Route
   path="/supervisor"
   element={
     <ProtectedRoute role="supervisor">
@@ -107,18 +110,19 @@ function AppRoutes() {
   }
 >
   <Route index element={<SupervisorDashboard />} />
+
   <Route path="projects" element={<SupervisorProjects />} />
-
-  {/* ✅ PROJECT DETAIL */}
   <Route path="projects/:id" element={<SupervisorProjectDetail />} />
-
-  {/* ✅ TASK DETAIL */}
   <Route path="projects/:id/tasks/:taskId" element={<SupervisorTaskDetail />} />
 
   <Route path="teams" element={<SupervisorTeams />} />
   <Route path="notifications" element={<SupervisorNotifications />} />
-</Route>
 
+  <Route path="leads" element={<SupervisorLeads />} />
+
+  <Route path="profile" element={<ProfilePage />} />
+
+</Route>
       {/* ================= LEAD ================= */}
      <Route
   path="/lead"
@@ -131,14 +135,15 @@ function AppRoutes() {
   <Route index element={<LeadDashboard />} />
   <Route path="projects" element={<LeadProjects />} />
 
-  {/* ✅ PROJECT DETAIL (FULL PAGE) */}
+  {/* PROJECT DETAIL (FULL PAGE) */}
   <Route path="projects/:id" element={<ProjectDetail />} />
 
-  {/* ✅ TASK DETAIL */}
+  {/* TASK DETAIL */}
   <Route path="projects/:id/tasks/:taskId" element={<LeadTaskDetail />} />
 
   <Route path="team-members" element={<LeadTeamMembers />} />
   <Route path="notifications" element={<LeadNotifications />} />
+  <Route path="profile" element={<ProfilePage />} />
 </Route>
 
       {/* ROOT */}

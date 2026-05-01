@@ -55,12 +55,42 @@ export default function LeadDashboard() {
       <div className="page-container">
 
         {/* Stats */}
-        <div className="grid-4 stagger-children" style={{ marginBottom: 28 }}>
-          <StatCard label="My Projects" value={myProjects.length} icon={FolderKanban} colorKey="purple" />
-          <StatCard label="Total Tasks" value={myTasks.length} icon={CheckCircle2} colorKey="teal" sub={`${doneTasks} completed`} />
-          <StatCard label="Team Members" value={myMembers.length} icon={Users} colorKey="amber" />
-          <StatCard label="In Progress" value={inProgressTasks} icon={Clock} colorKey="rose" />
-        </div>
+       <div className="grid-4 stagger-children" style={{ marginBottom: 28 }}>
+
+  <StatCard
+    label="My Projects"
+    value={myProjects.length}
+    icon={FolderKanban}
+    colorKey="purple"
+    to="/lead/projects"
+  />
+
+  <StatCard
+    label="Total Tasks"
+    value={myTasks.length}
+    icon={CheckCircle2}
+    colorKey="teal"
+    sub={`${doneTasks} completed`}
+    to="/lead/projects"
+  />
+
+  <StatCard
+    label="Team Members"
+    value={myMembers.length}
+    icon={Users}
+    colorKey="amber"
+    to="/lead/team-members"
+  />
+
+  <StatCard
+    label="In Progress"
+    value={inProgressTasks}
+    icon={Clock}
+    colorKey="rose"
+    to="/lead/projects"
+  />
+
+</div>
 
         <div className="grid-2" style={{ marginBottom: 20 }}>
 
@@ -102,7 +132,26 @@ export default function LeadDashboard() {
                       cursor: 'pointer'
                     }}
                   >
-                    <ProgressRing progress={progress} size={42} strokeWidth={4} color={hc} />
+                    <div style={{ position: 'relative', width: 42, height: 42 }}>
+  <ProgressRing progress={progress} size={42} strokeWidth={4} color={hc} />
+
+  <div
+    style={{
+      position: 'absolute',
+      inset: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 10.5,
+      fontWeight: 800,
+      color: hc,
+      letterSpacing: 0.2,
+      pointerEvents: 'none'
+    }}
+  >
+    {progress}%
+  </div>
+</div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{
@@ -137,19 +186,77 @@ export default function LeadDashboard() {
               Task Overview
             </h3>
 
-            <ResponsiveContainer width="100%" height={195}>
-              <BarChart data={taskStatusData} barSize={26}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" vertical={false} />
-                <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11.5} />
-                <YAxis stroke="var(--text-muted)" fontSize={11.5} />
-                <Tooltip content={<TT />} />
-                <Bar dataKey="value" radius={[5, 5, 0, 0]}>
-                  {taskStatusData.map((e, i) => (
-                    <Cell key={i} fill={e.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <p style={{
+              fontSize: 11.5,
+              color: 'var(--text-muted)'
+            }}>
+        Distribution of tasks across all stages
+            </p>
+        
+            <div style={{ paddingTop: 6 }}>
+
+  {/* HEADER INFO */}
+  <div style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 14
+  }}>
+
+    <div style={{
+      fontSize: 12,
+      fontWeight: 700,
+      color: 'var(--text-secondary)',
+      background: 'var(--bg-secondary)',
+      padding: '6px 10px',
+      borderRadius: 999,
+      border: '1px solid var(--border-subtle)'
+    }}>
+      Total: {taskStatusData.reduce((a, b) => a + b.value, 0)}
+    </div>
+  </div>
+
+  {/* CHART */}
+  <ResponsiveContainer width="100%" height={210}>
+    <BarChart data={taskStatusData} barSize={24}>
+
+      <CartesianGrid
+        strokeDasharray="3 3"
+        stroke="var(--border-subtle)"
+        vertical={false}
+        opacity={0.4}
+      />
+
+      <XAxis
+        dataKey="name"
+        stroke="var(--text-muted)"
+        fontSize={11.5}
+        tickLine={false}
+        axisLine={false}
+      />
+
+      <YAxis
+        stroke="var(--text-muted)"
+        fontSize={11.5}
+        tickLine={false}
+        axisLine={false}
+      />
+
+      <Tooltip content={<TT />} />
+
+      <Bar
+        dataKey="value"
+        radius={[8, 8, 4, 4]}
+      >
+        {taskStatusData.map((e, i) => (
+          <Cell key={i} fill={e.fill} />
+        ))}
+      </Bar>
+
+    </BarChart>
+  </ResponsiveContainer>
+
+</div>
           </div>
 
         </div>

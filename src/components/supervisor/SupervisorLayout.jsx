@@ -5,9 +5,14 @@ import { LayoutDashboard, FolderKanban, Users, Bell } from 'lucide-react';
 
 const navItems = [
   { path: '/supervisor', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { path: '/supervisor/notifications', label: 'Notifications', icon: Bell },
   { path: '/supervisor/projects', label: 'All Projects', icon: FolderKanban },
   { path: '/supervisor/teams', label: 'Teams & Members', icon: Users },
-  { path: '/supervisor/notifications', label: 'Notifications', icon: Bell }
+  {
+  label: "Leads",
+  path: "/supervisor/leads",
+  icon: Users
+}
 ];
 
 export default function SupervisorLayout() {
@@ -28,7 +33,6 @@ export default function SupervisorLayout() {
       />
 
       <main className="main-content">
-        {/* 👇 THIS IS KEY */}
         <Outlet context={{ onMenuClick: () => setSidebarOpen(true) }} />
       </main>
     </div>

@@ -1,8 +1,16 @@
 // components/supervisor/SupervisorDashboard.jsx
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid, Legend, AreaChart, Area } from 'recharts';
+import { useState } from "react";
+
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, PieChart, Pie, Cell,
+  CartesianGrid, Legend, AreaChart, Area
+} from 'recharts';
+
 import { FolderKanban, Users, CheckCircle2, Activity } from 'lucide-react';
 import Topbar from '../shared/Topbar';
 import StatCard from '../shared/StatCard';
+
 import {
   PROJECTS,
   TASKS,
@@ -13,11 +21,17 @@ import {
   priorityConfig,
   statusConfig
 } from '../../data/mockData';
-import { PriorityBadge, StatusBadge, ProgressRing } from '../shared/UIComponents';
+
+import {
+  PriorityBadge,
+  StatusBadge,
+  ProgressRing
+} from '../shared/UIComponents';
+
 import { useOutletContext } from 'react-router-dom';
 
 export default function SupervisorDashboard() {
-  // ✅ FIXED: hook correctly inside component
+
   const { onMenuClick } = useOutletContext();
 
   const totalProjects = PROJECTS.filter(p => !p.is_deleted).length;
@@ -28,6 +42,8 @@ export default function SupervisorDashboard() {
 
   const completionPercent =
     totalTasks === 0 ? 0 : Math.round((doneTasks / totalTasks) * 100);
+
+    const [activeIndex, setActiveIndex] = useState(null);
 
   const statusData = Object.entries(
     PROJECTS.reduce((acc, p) => {
@@ -69,6 +85,7 @@ export default function SupervisorDashboard() {
     };
   });
 
+  // ✅ IMPROVED TOOLTIP
   const TT = ({ active, payload, label }) =>
     active && payload?.length ? (
       <div
@@ -76,14 +93,17 @@ export default function SupervisorDashboard() {
           background: 'var(--bg-card)',
           border: '1px solid var(--border-default)',
           borderRadius: 10,
-          padding: '9px 13px',
-          fontSize: 12.5
+          padding: '10px 14px',
+          fontSize: 13
         }}
       >
-        <p style={{ marginBottom: 5, fontWeight: 700 }}>{label}</p>
-        {payload.map(p => (
-          <p key={p.dataKey} style={{ color: p.color }}>
-            {p.name}: {p.value}
+        <p style={{ marginBottom: 6, fontWeight: 700 }}>
+          {label}
+        </p>
+
+        {payload.map((p, i) => (
+          <p key={i} style={{ color: p.color }}>
+            {p.name || p.dataKey}: {p.value}
           </p>
         ))}
       </div>
@@ -96,53 +116,61 @@ export default function SupervisorDashboard() {
       <div className="page-container">
 
         {/* Stats */}
-        <div className="grid-4 stagger-children" style={{ marginBottom: 28 }}>
-          <StatCard
-            label="Total Projects"
-            value={totalProjects}
-            icon={FolderKanban}
-            colorKey="purple"
-            change={12}
-          />
+        {/* Stats */}
+<div className="grid-4 stagger-children" style={{ marginBottom: 28 }}>
 
-          <StatCard
-            label="Active Projects"
-            value={activeProjects}
-            icon={Activity}
-            colorKey="teal"
-            sub="Currently in progress"
-          />
+  <StatCard
+    label="Total Projects"
+    value={totalProjects}
+    icon={FolderKanban}
+    colorKey="purple"
+    change={12}
+    to="/supervisor/projects"
+  />
 
-          <StatCard
-            label="Team Members"
-            value={TEAM_MEMBERS.length}
-            icon={Users}
-            colorKey="amber"
-            change={8}
-          />
+  <StatCard
+    label="Active Projects"
+    value={activeProjects}
+    icon={Activity}
+    colorKey="teal"
+    sub="Currently in progress"
+    to="/supervisor/projects"
+  />
 
-          <StatCard
-            label="Tasks Done"
-            value={`${doneTasks}/${totalTasks}`}
-            icon={CheckCircle2}
-            colorKey="emerald"
-            sub={`${completionPercent}% completion`}
-          />
-        </div>
+  <StatCard
+    label="Team Members"
+    value={TEAM_MEMBERS.length}
+    icon={Users}
+    colorKey="amber"
+    change={8}
+    to="/supervisor/teams"
+  />
+
+  <StatCard
+    label="Tasks Done"
+    value={`${doneTasks}/${totalTasks}`}
+    icon={CheckCircle2}
+    colorKey="emerald"
+    sub={`${completionPercent}% completion`}
+    to="/supervisor/projects"
+  />
+
+</div>
 
         {/* Row 1 */}
         <div className="grid-2" style={{ marginBottom: 20 }}>
 
+          {/* AREA */}
           <div className="card" style={{ padding: 22 }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
               Task Completion Trend
             </h3>
 
             <ResponsiveContainer width="100%" height={210}>
               <AreaChart data={taskTrendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
-                <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11.5} />
-                <YAxis stroke="var(--text-muted)" fontSize={11.5} />
+                {/* <CartesianGrid strokeDasharray="3 3" /> */}
+                <XAxis dataKey="month" fontSize={11.5} />
+                <YAxis fontSize={11.5} />
                 <Tooltip content={<TT />} />
                 <Legend />
 
@@ -152,22 +180,124 @@ export default function SupervisorDashboard() {
             </ResponsiveContainer>
           </div>
 
+          {/* PIE */}
           <div className="card" style={{ padding: 22 }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
-              Project Status
-            </h3>
+  <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
+    Project Status
+  </h3>
 
-            <ResponsiveContainer width="100%" height={170}>
-              <PieChart>
-                <Pie data={statusData} innerRadius={50} outerRadius={75} dataKey="value">
-                  {statusData.map((e, i) => (
-                    <Cell key={i} fill={e.fill} />
-                  ))}
-                </Pie>
-                <Tooltip content={<TT />} />
-              </PieChart>
-            </ResponsiveContainer>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+
+    {/* PIE */}
+    <div style={{ position: 'relative', width: '100%' }}>
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie
+            data={statusData}
+            innerRadius={60}
+            outerRadius={85}
+            paddingAngle={3}
+            dataKey="value"
+            onMouseEnter={(_, index) => setActiveIndex(index)}
+            onMouseLeave={() => setActiveIndex(null)}
+          >
+            {statusData.map((entry, index) => {
+              const total = statusData.reduce((a, b) => a + b.value, 0);
+              const percent = total ? Math.round((entry.value / total) * 100) : 0;
+
+              return (
+                <Cell
+                  key={index}
+                  fill={entry.fill}
+                  style={{
+                    opacity: activeIndex === null || activeIndex === index ? 1 : 0.4,
+                    transform: activeIndex === index ? 'scale(1.05)' : 'scale(1)',
+                    transformOrigin: 'center',
+                    transition: 'all 0.25s ease'
+                  }}
+                />
+              );
+            })}
+          </Pie>
+
+          <Tooltip content={<TT />} />
+        </PieChart>
+      </ResponsiveContainer>
+
+      {/* ✅ CENTER TOTAL */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        pointerEvents: 'none'
+      }}>
+        <p style={{ fontSize: 20, fontWeight: 900 }}>
+          {statusData.reduce((a, b) => a + b.value, 0)}
+        </p>
+        <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+          Total Projects
+        </p>
+      </div>
+    </div>
+
+    {/* LEGEND */}
+    <div style={{
+      minWidth: 140,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }}>
+      {statusData.map((s, i) => {
+        const total = statusData.reduce((a, b) => a + b.value, 0);
+        const percent = total ? Math.round((s.value / total) * 100) : 0;
+
+        return (
+          <div
+            key={i}
+            onMouseEnter={() => setActiveIndex(i)}
+            onMouseLeave={() => setActiveIndex(null)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              cursor: 'pointer',
+              padding: '4px 6px',
+              borderRadius: 6,
+              background: activeIndex === i ? 'var(--bg-secondary)' : 'transparent',
+              transition: 'all 0.2s'
+            }}
+          >
+            <div style={{
+              width: 10,
+              height: 10,
+              borderRadius: 3,
+              background: s.fill
+            }} />
+
+            <span style={{
+              fontSize: 12,
+              color: 'var(--text-secondary)'
+            }}>
+              {s.name}
+            </span>
+
+            <span style={{
+              marginLeft: 'auto',
+              fontSize: 12,
+              fontWeight: 700
+            }}>
+              {s.value} ({percent}%)
+            </span>
           </div>
+        );
+      })}
+    </div>
+
+  </div>
+</div>
 
         </div>
 
@@ -175,15 +305,15 @@ export default function SupervisorDashboard() {
         <div className="grid-2" style={{ marginBottom: 20 }}>
 
           <div className="card" style={{ padding: 22 }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
               Team Productivity
             </h3>
 
             <ResponsiveContainer width="100%" height={210}>
               <BarChart data={teamProductivity}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
-                <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11.5} />
-                <YAxis stroke="var(--text-muted)" fontSize={11.5} />
+                {/* <CartesianGrid strokeDasharray="3 3" /> */}
+                <XAxis dataKey="name" fontSize={11.5} />
+                <YAxis fontSize={11.5} />
                 <Tooltip content={<TT />} />
 
                 <Bar dataKey="tasks" fill="#6366f1" />
@@ -193,15 +323,15 @@ export default function SupervisorDashboard() {
           </div>
 
           <div className="card" style={{ padding: 22 }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
               Priority Distribution
             </h3>
 
             <ResponsiveContainer width="100%" height={210}>
               <BarChart data={priorityData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" />
-                <XAxis type="number" stroke="var(--text-muted)" fontSize={11.5} />
-                <YAxis dataKey="name" type="category" stroke="var(--text-muted)" fontSize={11.5} width={70} />
+                  {/* <CartesianGrid strokeDasharray="3 3" /> */}
+                <XAxis type="number" fontSize={11.5} />
+                <YAxis dataKey="name" type="category" fontSize={11.5} width={70} />
                 <Tooltip content={<TT />} />
 
                 <Bar dataKey="value">
@@ -215,9 +345,9 @@ export default function SupervisorDashboard() {
 
         </div>
 
-        {/* Projects Health */}
+        {/* PROJECT HEALTH */}
         <div className="card" style={{ padding: 22, marginBottom: 20 }}>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 800, marginBottom: 18 }}>
             All Projects Health
           </h3>
 
@@ -235,29 +365,44 @@ export default function SupervisorDashboard() {
                 '#f43f5e';
 
               return (
-                <div
-                  key={project.p_id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 14,
-                    padding: '12px 14px',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-subtle)'
-                  }}
-                >
-                  <ProgressRing progress={progress} size={48} strokeWidth={4} color={hc} />
+                <div key={project.p_id} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 14,
+                  padding: '12px 14px',
+                  background: 'var(--bg-secondary)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-subtle)'
+                }}>
 
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* ✅ PROGRESS WITH CENTER % */}
+                  <div style={{ position: 'relative', width: 48, height: 48 }}>
+                    <ProgressRing progress={progress} size={48} strokeWidth={4} color={hc} />
+
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: hc
+                    }}>
+                      {progress}%
+                    </div>
+                  </div>
+
+                  <div style={{ flex: 1 }}>
                     <p style={{ fontWeight: 700 }}>{project.p_name}</p>
-                    <p style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>
+                    <p style={{ fontSize: 11.5 }}>
                       Lead: {lead?.u_name} · {done}/{tasks.length} tasks
                     </p>
                   </div>
 
                   <PriorityBadge priority={project.priority} />
                   <StatusBadge status={project.status} />
+
                 </div>
               );
             })}

@@ -1,5 +1,6 @@
 import { motion, animate } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const colorMap = {
   purple: {
@@ -8,7 +9,6 @@ const colorMap = {
     accent: '#6366f1',
     accentRgb: '99, 102, 241',
     shimmer: '#a5b4fc',
-    textAccent: '#818cf8',
   },
   teal: {
     orb1: '#0d9488',
@@ -16,7 +16,6 @@ const colorMap = {
     accent: '#14b8a6',
     accentRgb: '20, 184, 166',
     shimmer: '#5eead4',
-    textAccent: '#2dd4bf',
   },
   amber: {
     orb1: '#d97706',
@@ -24,7 +23,6 @@ const colorMap = {
     accent: '#f59e0b',
     accentRgb: '245, 158, 11',
     shimmer: '#fde68a',
-    textAccent: '#fbbf24',
   },
   emerald: {
     orb1: '#059669',
@@ -32,32 +30,14 @@ const colorMap = {
     accent: '#10b981',
     accentRgb: '16, 185, 129',
     shimmer: '#6ee7b7',
-    textAccent: '#34d399',
-  },
-  rose: {
-    orb1: '#e11d48',
-    orb2: '#fb7185',
-    accent: '#f43f5e',
-    accentRgb: '244, 63, 94',
-    shimmer: '#fda4af',
-    textAccent: '#fb7185',
   },
 };
 
 function AnimatedValue({ value }) {
   const [display, setDisplay] = useState('0');
-  const numericMatch = String(value).match(/^([^\d]*)(\d[\d,.]*)(.*)$/);
 
   useEffect(() => {
-    if (!numericMatch) {
-      setDisplay(value);
-      return;
-    }
-
-    const prefix = numericMatch[1];
-    const numStr = numericMatch[2].replace(/,/g, '');
-    const suffix = numericMatch[3];
-    const num = parseFloat(numStr);
+    const num = parseFloat(String(value).replace(/[^0-9.]/g, ''));
 
     if (isNaN(num)) {
       setDisplay(value);
@@ -65,17 +45,10 @@ function AnimatedValue({ value }) {
     }
 
     const ctrl = animate(0, num, {
-      duration: 1.2,
+      duration: 1.1,
       ease: [0.22, 1, 0.36, 1],
       onUpdate(v) {
-        const formatted =
-          num >= 1000
-            ? Math.round(v).toLocaleString()
-            : numStr.includes('.')
-              ? v.toFixed(1)
-              : Math.round(v).toString();
-
-        setDisplay(`${prefix}${formatted}${suffix}`);
+        setDisplay(Math.round(v).toLocaleString());
       },
     });
 
@@ -85,9 +58,9 @@ function AnimatedValue({ value }) {
   return <span>{display}</span>;
 }
 
-/* ================= CRYSTAL BACKGROUND ================= */
+/* ================= BACKGROUND ================= */
 
-function CrystalCanvas({ color, hovered }) {
+function CrystalCanvas({ color }) {
   const canvasRef = useRef(null);
   const frameRef = useRef(null);
   const timeRef = useRef(0);
@@ -97,54 +70,41 @@ function CrystalCanvas({ color, hovered }) {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-
     const W = (canvas.width = canvas.offsetWidth);
     const H = (canvas.height = canvas.offsetHeight);
 
     const c = colorMap[color] || colorMap.purple;
-    const speed = hovered ? 1.6 : 0.7;
 
     function draw() {
-      timeRef.current += 0.016 * speed;
+      timeRef.current += 0.016;
       const t = timeRef.current;
 
       ctx.clearRect(0, 0, W, H);
 
-      // ORB 1
-      const ox1 = W * 0.25 + Math.sin(t * 0.7) * W * 0.18;
-      const oy1 = H * 0.4 + Math.cos(t * 0.5) * H * 0.25;
-      const g1 = ctx.createRadialGradient(ox1, oy1, 0, ox1, oy1, W * 0.45);
-      g1.addColorStop(0, `${c.orb1}55`);
+      const ox1 = W * 0.3 + Math.sin(t * 0.6) * 40;
+      const oy1 = H * 0.5 + Math.cos(t * 0.5) * 30;
+
+      const g1 = ctx.createRadialGradient(ox1, oy1, 0, ox1, oy1, W * 0.5);
+      g1.addColorStop(0, `${c.orb1}40`);
       g1.addColorStop(1, `${c.orb1}00`);
       ctx.fillStyle = g1;
       ctx.fillRect(0, 0, W, H);
 
-      // ORB 2
-      const ox2 = W * 0.72 + Math.cos(t * 0.6) * W * 0.2;
-      const oy2 = H * 0.55 + Math.sin(t * 0.45) * H * 0.28;
-      const g2 = ctx.createRadialGradient(ox2, oy2, 0, ox2, oy2, W * 0.38);
-      g2.addColorStop(0, `${c.orb2}44`);
+      const ox2 = W * 0.7 + Math.cos(t * 0.4) * 50;
+      const oy2 = H * 0.4 + Math.sin(t * 0.5) * 40;
+
+      const g2 = ctx.createRadialGradient(ox2, oy2, 0, ox2, oy2, W * 0.45);
+      g2.addColorStop(0, `${c.orb2}35`);
       g2.addColorStop(1, `${c.orb2}00`);
       ctx.fillStyle = g2;
       ctx.fillRect(0, 0, W, H);
-
-      // shimmer lines only (kept)
-      for (let i = 0; i < 3; i++) {
-        const lx = (((t * 0.3 + i * 0.33) % 1) * (W + 60)) - 30;
-        const lg = ctx.createLinearGradient(lx - 20, 0, lx + 20, 0);
-        lg.addColorStop(0, `${c.shimmer}00`);
-        lg.addColorStop(0.5, `${c.shimmer}18`);
-        lg.addColorStop(1, `${c.shimmer}00`);
-        ctx.fillStyle = lg;
-        ctx.fillRect(lx - 20, 0, 40, H);
-      }
 
       frameRef.current = requestAnimationFrame(draw);
     }
 
     frameRef.current = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(frameRef.current);
-  }, [color, hovered]);
+  }, [color]);
 
   return (
     <canvas
@@ -156,6 +116,7 @@ function CrystalCanvas({ color, hovered }) {
         height: '100%',
         borderRadius: 'inherit',
         pointerEvents: 'none',
+        opacity: 0.9,
       }}
     />
   );
@@ -171,91 +132,124 @@ export default function StatCard({
   change,
   sub,
   index = 0,
-}) {
-  const [hovered, setHovered] = useState(false);
-  const c = colorMap[colorKey] || colorMap.purple;
 
+  // 👉 NEW: navigation support
+  to,
+}) {
+  const navigate = useNavigate();
+  const [hovered, setHovered] = useState(false);
+
+  const c = colorMap[colorKey] || colorMap.purple;
   const isPositive = change >= 0;
 
   return (
     <motion.div
+      onClick={() => to && navigate(to)}
       className="stat-card-crystal"
-      initial={{ opacity: 0, y: 28, scale: 0.94 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: index * 0.06, duration: 0.5 }}
-      whileHover={{ y: -6, scale: 1.02 }}
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05, duration: 0.4 }}
+      whileHover={{ y: -4 }}
+      whileTap={{ scale: 0.98 }}
       onHoverStart={() => setHovered(true)}
       onHoverEnd={() => setHovered(false)}
       style={{
         position: 'relative',
-        borderRadius: 20,
-        padding: '20px',
+        borderRadius: 18,
+        padding: 20,
         overflow: 'hidden',
         background: 'var(--stat-card-bg)',
         border: `1px solid rgba(${c.accentRgb}, 0.18)`,
+        cursor: to ? 'pointer' : 'default',
       }}
     >
-      <CrystalCanvas color={colorKey} hovered={hovered} />
+      <CrystalCanvas color={colorKey} />
 
       <div style={{ position: 'relative', zIndex: 2 }}>
 
-        {/* top row */}
+        {/* TOP */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
-          marginBottom: 12
+          marginBottom: 10
         }}>
           <div style={{
-            width: 42,
-            height: 42,
+            width: 40,
+            height: 40,
             borderRadius: 14,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: `rgba(${c.accentRgb},0.1)`,
+            background: `rgba(${c.accentRgb},0.12)`,
             border: `1px solid rgba(${c.accentRgb},0.2)`
           }}>
             <Icon size={18} color={c.accent} />
           </div>
 
-          {/* CLEAN BADGE (FIXED) */}
           {change !== undefined && (
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                padding: '3px 8px',
-                borderRadius: 999,
-                background: isPositive
-                  ? 'rgba(16,185,129,0.12)'
-                  : 'rgba(244,63,94,0.12)',
-                color: isPositive ? '#10b981' : '#f43f5e',
-                border: `1px solid ${isPositive ? 'rgba(16,185,129,0.25)' : 'rgba(244,63,94,0.25)'}`,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4
-              }}
-            >
-              {isPositive ? '▲' : '▼'} {Math.abs(change)}%
-            </div>
-          )}
+  <div
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+
+      minWidth: 58,
+      height: 24,
+      padding: '0 10px',
+
+      borderRadius: 999,
+
+      fontSize: 11,
+      fontWeight: 700,
+      letterSpacing: 0.2,
+
+      lineHeight: 1,
+
+      background: isPositive
+        ? 'rgba(16,185,129,0.12)'
+        : 'rgba(244,63,94,0.12)',
+
+      color: isPositive ? '#10b981' : '#f43f5e',
+
+      border: `1px solid ${
+        isPositive
+          ? 'rgba(16,185,129,0.25)'
+          : 'rgba(244,63,94,0.25)'
+      }`,
+
+      backdropFilter: 'blur(6px)',
+      WebkitBackdropFilter: 'blur(6px)',
+
+      gap: 4,
+      boxSizing: 'border-box'
+    }}
+  >
+    <span style={{ fontSize: 10, transform: 'translateY(-0.5px)' }}>
+      {isPositive ? '▲' : '▼'}
+    </span>
+
+    <span style={{ display: 'flex', alignItems: 'center' }}>
+      {Math.abs(change)}%
+    </span>
+  </div>
+)}
         </div>
 
-        {/* value */}
+        {/* VALUE */}
         <div style={{
-          fontSize: 28,
+          fontSize: 26,
           fontWeight: 800,
-          marginBottom: 4
+          marginBottom: 2
         }}>
           <AnimatedValue value={value} />
         </div>
 
-        {/* label */}
-        <div style={{ fontSize: 12, opacity: 0.7 }}>
+        {/* LABEL */}
+        <div style={{ fontSize: 12, opacity: 0.75 }}>
           {label}
         </div>
 
-        {/* sub */}
+        {/* SUB */}
         {sub && (
           <div style={{
             fontSize: 11,
@@ -265,6 +259,7 @@ export default function StatCard({
             {sub}
           </div>
         )}
+
       </div>
     </motion.div>
   );

@@ -133,37 +133,42 @@ export default function LeadTeamMembers() {
   return (
     <div>
       {/* TOPBAR */}
-      <Topbar
-        title="Team Members"
-        onMenuClick={onMenuClick}
-        actions={
-          <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>
-            <UserPlus size={14} /> Add Member
-          </button>
-        }
+     <Topbar
+  title="Team Members"
+  onMenuClick={onMenuClick}
+  searchBar={
+    <div style={{ position: 'relative', width: '100%', maxWidth: 380 }}>
+      <Search
+        size={14}
+        style={{
+          position: 'absolute',
+          left: 11,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: 'var(--text-muted)'
+        }}
       />
+      <input
+        className="input"
+        placeholder="Search by name, role, or skills…"
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        style={{ paddingLeft: 34, width: '100%' }}
+      />
+    </div>
+  }
+/>
 
       <div className="page-container">
-        {/* SEARCH */}
-        <div style={{ position: 'relative', marginBottom: 22, maxWidth: 380 }}>
-          <Search
-            size={14}
-            style={{
-              position: 'absolute',
-              left: 11,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--text-muted)'
-            }}
-          />
-          <input
-            className="input"
-            placeholder="Search by name, role, or skills…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ paddingLeft: 34 }}
-          />
-        </div>
+        {/* ADD MEMBER BUTTON */}
+<div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+  <button
+    className="btn btn-primary btn-sm"
+    onClick={() => setShowAdd(true)}
+  >
+    <UserPlus size={14} /> Add Member
+  </button>
+</div>
 
         {/* GRID */}
         <div className="grid-auto stagger-children">
@@ -293,102 +298,538 @@ export default function LeadTeamMembers() {
       </div>
 
       {/* DRAWER */}
-      <AnimatePresence>
-        {drawer && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setDrawer(null)}
+      {/* EXPANDED MEMBER POPUP */}
+<AnimatePresence>
+  {drawer && (() => {
+    const stats = getMemberStats(drawer.tm_id);
+
+    // MOCK PROJECT DATA
+    const currentProjects = [
+      {
+        name: 'AI Travel Genie',
+        role: 'Frontend Developer',
+        progress: 82,
+        status: 'In Progress'
+      },
+      {
+        name: 'PMS Dashboard',
+        role: 'UI Engineer',
+        progress: 65,
+        status: 'Ongoing'
+      }
+    ];
+
+    const completedProjects = [
+      {
+        name: 'HR Management System',
+        duration: '4 Months',
+        performance: 'Excellent'
+      },
+      {
+        name: 'CRM Portal',
+        duration: '2 Months',
+        performance: 'Very Good'
+      },
+      {
+        name: 'Inventory System',
+        duration: '3 Months',
+        performance: 'Excellent'
+      }
+    ];
+
+    const workHistory = [
+      {
+        year: '2026',
+        text: 'Assigned to AI Travel Genie under Lead Ahmed'
+      },
+      {
+        year: '2025',
+        text: 'Completed CRM Portal successfully'
+      },
+      {
+        year: '2025',
+        text: 'Promoted to Senior Frontend Developer'
+      },
+      {
+        year: '2024',
+        text: 'Joined Development Team'
+      }
+    ];
+
+    const initials = drawer.name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase();
+
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={() => setDrawer(null)}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.75)',
+          backdropFilter: 'blur(8px)',
+          zIndex: 999999,
+          padding: 24,
+          overflowY: 'auto'
+        }}
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 30 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          transition={{ duration: 0.28 }}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            maxWidth: 1200,
+            margin: '0 auto',
+            borderRadius: 28,
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-subtle)',
+            overflow: 'hidden',
+            boxShadow: '0 20px 80px rgba(0,0,0,0.45)'
+          }}
+        >
+          {/* HEADER */}
+          <div
             style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(0,0,0,0.55)',
-              backdropFilter: 'blur(6px)',
-              zIndex: 99999,
-              display: 'flex',
-              justifyContent: 'flex-end'
+              padding: 30,
+              background:
+                'linear-gradient(135deg, rgba(99,102,241,.15), rgba(45,212,191,.08))',
+              borderBottom: '1px solid var(--border-subtle)'
             }}
           >
-            <motion.div
-              initial={{ x: 40, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 40, opacity: 0 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              onClick={(e) => e.stopPropagation()}
+            <div
               style={{
-                width: 360,
-                height: '100%',
-                background: 'var(--bg-card)',
-                borderLeft: '1px solid var(--border-subtle)',
-                padding: 20,
                 display: 'flex',
-                flexDirection: 'column',
-                gap: 14
+                justifyContent: 'space-between',
+                gap: 20,
+                flexWrap: 'wrap'
               }}
             >
-              <h2 style={{ fontSize: 18, fontWeight: 900 }}>
-                {drawer.name}
-              </h2>
-
-              <span
-                className="badge badge-purple"
+              <div
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  padding: '2px 8px',
-                  fontSize: 10.5,
-                  fontWeight: 600,
-                  width: 'fit-content',
-                  borderRadius: 999
+                  display: 'flex',
+                  gap: 20,
+                  alignItems: 'center'
                 }}
               >
-                {drawer.role}
-              </span>
+                <div
+                  style={{
+                    width: 90,
+                    height: 90,
+                    borderRadius: '50%',
+                    background: drawer.avatar_color + '22',
+                    border: `3px solid ${drawer.avatar_color}55`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 900,
+                    fontSize: 28,
+                    color: drawer.avatar_color
+                  }}
+                >
+                  {initials}
+                </div>
 
-              <div style={{
-                padding: 14,
-                borderRadius: 12,
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-subtle)'
-              }}>
-                <p style={{ fontSize: 12 }}>
-                  <b>Email:</b> {drawer.email || 'Not provided'}
-                </p>
-                <p style={{ fontSize: 12 }}>
-                  <b>Experience:</b> {drawer.experience} years
-                </p>
-              </div>
+                <div>
+                  <h1
+                    style={{
+                      fontSize: 30,
+                      fontWeight: 900,
+                      marginBottom: 8
+                    }}
+                  >
+                    {drawer.name}
+                  </h1>
 
-              <div>
-                <p style={{ fontSize: 11, fontWeight: 700 }}>SKILLS</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {(drawer.skills || '').split(',').map((s, i) => (
-                    <span key={i} className="badge badge-gray">
-                      {s.trim()}
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      flexWrap: 'wrap',
+                      marginBottom: 10
+                    }}
+                  >
+                    <span className="badge badge-purple">
+                      {drawer.role}
                     </span>
-                  ))}
+
+                    <span className="badge badge-green">
+                      Active Employee
+                    </span>
+
+                    <span className="badge badge-gray">
+                      {drawer.experience} Years Experience
+                    </span>
+                  </div>
+
+                  <p style={{ color: 'var(--text-secondary)' }}>
+                    {drawer.email}
+                  </p>
+
+                  <p
+                    style={{
+                      marginTop: 6,
+                      fontSize: 13,
+                      color: 'var(--text-secondary)'
+                    }}
+                  >
+                    Currently working under Lead:
+                    <b> Ahmed Hassan</b>
+                  </p>
                 </div>
               </div>
 
               <button
                 className="btn btn-secondary"
                 onClick={() => setDrawer(null)}
-                style={{
-                  marginTop: 'auto',
-                  width: '100%',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  textAlign: 'center'
-                }}
+                style={{ height: 'fit-content' }}
               >
                 Close
               </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+
+          {/* BODY */}
+          <div
+            style={{
+              padding: 26,
+              display: 'grid',
+              gridTemplateColumns: '1.2fr .8fr',
+              gap: 24
+            }}
+          >
+            {/* LEFT SIDE */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              {/* CURRENT PROJECTS */}
+              <div
+                style={{
+                  padding: 22,
+                  borderRadius: 22,
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
+                <h3 style={{ marginBottom: 18, fontWeight: 900 }}>
+                  Current Projects
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {currentProjects.map((p, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        padding: 16,
+                        borderRadius: 16,
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-subtle)'
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: 10
+                        }}
+                      >
+                        <div>
+                          <h4 style={{ fontWeight: 800 }}>{p.name}</h4>
+                          <p style={{ fontSize: 12 }}>{p.role}</p>
+                        </div>
+
+                        <span className="badge badge-blue">
+                          {p.status}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          height: 8,
+                          borderRadius: 999,
+                          overflow: 'hidden',
+                          background: '#23263a'
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${p.progress}%`,
+                            height: '100%',
+                            background:
+                              'linear-gradient(90deg,#6366f1,#2dd4bf)'
+                          }}
+                        />
+                      </div>
+
+                      <p
+                        style={{
+                          marginTop: 8,
+                          fontSize: 12,
+                          textAlign: 'right'
+                        }}
+                      >
+                        {p.progress}% Completed
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* COMPLETED PROJECTS */}
+              <div
+                style={{
+                  padding: 22,
+                  borderRadius: 22,
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
+                <h3 style={{ marginBottom: 18, fontWeight: 900 }}>
+                  Project History
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {completedProjects.map((p, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: 14,
+                        borderRadius: 14,
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-subtle)'
+                      }}
+                    >
+                      <div>
+                        <h4 style={{ fontWeight: 800 }}>{p.name}</h4>
+                        <p style={{ fontSize: 12 }}>
+                          Duration: {p.duration}
+                        </p>
+                      </div>
+
+                      <span className="badge badge-green">
+                        {p.performance}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* TIMELINE */}
+              <div
+                style={{
+                  padding: 22,
+                  borderRadius: 22,
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
+                <h3 style={{ marginBottom: 20, fontWeight: 900 }}>
+                  Work Timeline
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  {workHistory.map((item, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: 'flex',
+                        gap: 14,
+                        alignItems: 'flex-start'
+                      }}
+                    >
+                      <div
+                        style={{
+                          minWidth: 70,
+                          fontWeight: 800,
+                          color: '#6366f1'
+                        }}
+                      >
+                        {item.year}
+                      </div>
+
+                      <div
+                        style={{
+                          flex: 1,
+                          padding: 14,
+                          borderRadius: 14,
+                          background: 'var(--bg-card)',
+                          border: '1px solid var(--border-subtle)'
+                        }}
+                      >
+                        {item.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT SIDE */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* PERFORMANCE */}
+              <div
+                style={{
+                  padding: 22,
+                  borderRadius: 22,
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
+                <h3 style={{ marginBottom: 18, fontWeight: 900 }}>
+                  Performance
+                </h3>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 12
+                  }}
+                >
+                  {[
+                    {
+                      label: 'Tasks',
+                      value: stats.totalTasks
+                    },
+                    {
+                      label: 'Completed',
+                      value: stats.completedTasks
+                    },
+                    {
+                      label: 'Active',
+                      value: stats.inProgressTasks
+                    },
+                    {
+                      label: 'On-Time',
+                      value:
+                        stats.completedTasks > 0
+                          ? Math.round(
+                              (stats.completedOnTime /
+                                stats.completedTasks) *
+                                100
+                            ) + '%'
+                          : '0%'
+                    }
+                  ].map((s, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        padding: 18,
+                        borderRadius: 16,
+                        textAlign: 'center',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-subtle)'
+                      }}
+                    >
+                      <h2 style={{ fontWeight: 900 }}>{s.value}</h2>
+                      <p style={{ fontSize: 12 }}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* SKILLS */}
+              <div
+                style={{
+                  padding: 22,
+                  borderRadius: 22,
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
+                <h3 style={{ marginBottom: 16, fontWeight: 900 }}>
+                  Skills & Expertise
+                </h3>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 8
+                  }}
+                >
+                  {(drawer.skills || '').split(',').map((s, i) => (
+                    <span
+                      key={i}
+                      className="badge badge-gray"
+                      style={{
+                        padding: '8px 12px',
+                        fontSize: 12
+                      }}
+                    >
+                      {s.trim()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* WORKLOAD */}
+              <div
+                style={{
+                  padding: 22,
+                  borderRadius: 22,
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)'
+                }}
+              >
+                <h3 style={{ marginBottom: 16, fontWeight: 900 }}>
+                  Workload Overview
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {[
+                    ['Assigned Tasks', 18],
+                    ['Completed Sprint Tasks', 12],
+                    ['Pending Reviews', 4],
+                    ['Bug Fixes', 7]
+                  ].map(([label, val], i) => (
+                    <div key={i}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          marginBottom: 6
+                        }}
+                      >
+                        <span>{label}</span>
+                        <b>{val}</b>
+                      </div>
+
+                      <div
+                        style={{
+                          height: 7,
+                          borderRadius: 999,
+                          overflow: 'hidden',
+                          background: '#23263a'
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${Math.min(val * 5, 100)}%`,
+                            height: '100%',
+                            background:
+                              'linear-gradient(90deg,#6366f1,#8b5cf6)'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  })()}
+</AnimatePresence>
 
       {/* ADD MODAL */}
       <Modal
