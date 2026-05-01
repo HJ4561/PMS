@@ -316,12 +316,11 @@ export default function SupervisorTeams() {
       </div>
 
        {/* DRAWER */}
-      {/* EXPANDED MEMBER POPUP */}
+{/* DRAWER */}
 <AnimatePresence>
   {drawer && (() => {
     const stats = getMemberStats(drawer.tm_id);
 
-    // MOCK PROJECT DATA
     const currentProjects = [
       {
         name: 'AI Travel Genie',
@@ -386,15 +385,7 @@ export default function SupervisorTeams() {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={() => setDrawer(null)}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.75)',
-          backdropFilter: 'blur(8px)',
-          zIndex: 999999,
-          padding: 24,
-          overflowY: 'auto'
-        }}
+        className="member-modal-overlay"
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 30 }}
@@ -402,77 +393,30 @@ export default function SupervisorTeams() {
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ duration: 0.28 }}
           onClick={(e) => e.stopPropagation()}
-          style={{
-            maxWidth: 1200,
-            margin: '0 auto',
-            borderRadius: 28,
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-subtle)',
-            overflow: 'hidden',
-            boxShadow: '0 20px 80px rgba(0,0,0,0.45)'
-          }}
+          className="member-modal"
         >
           {/* HEADER */}
-          <div
-            style={{
-              padding: 30,
-              background:
-                'linear-gradient(135deg, rgba(99,102,241,.15), rgba(45,212,191,.08))',
-              borderBottom: '1px solid var(--border-subtle)'
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 20,
-                flexWrap: 'wrap'
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  gap: 20,
-                  alignItems: 'center'
-                }}
-              >
+          <div className="member-modal-header">
+            <div className="member-header-top">
+              
+              <div className="member-header-left">
                 <div
+                  className="member-avatar-large"
                   style={{
-                    width: 90,
-                    height: 90,
-                    borderRadius: '50%',
                     background: drawer.avatar_color + '22',
                     border: `3px solid ${drawer.avatar_color}55`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 900,
-                    fontSize: 28,
                     color: drawer.avatar_color
                   }}
                 >
                   {initials}
                 </div>
 
-                <div>
-                  <h1
-                    style={{
-                      fontSize: 30,
-                      fontWeight: 900,
-                      marginBottom: 8
-                    }}
-                  >
+                <div className="member-header-info">
+                  <h1 className="member-name">
                     {drawer.name}
                   </h1>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: 8,
-                      flexWrap: 'wrap',
-                      marginBottom: 10
-                    }}
-                  >
+                  <div className="member-badges">
                     <span className="badge badge-purple">
                       {drawer.role}
                     </span>
@@ -486,17 +430,11 @@ export default function SupervisorTeams() {
                     </span>
                   </div>
 
-                  <p style={{ color: 'var(--text-secondary)' }}>
+                  <p className="member-email">
                     {drawer.email}
                   </p>
 
-                  <p
-                    style={{
-                      marginTop: 6,
-                      fontSize: 13,
-                      color: 'var(--text-secondary)'
-                    }}
-                  >
+                  <p className="member-lead">
                     Currently working under Lead:
                     <b> Ahmed Hassan</b>
                   </p>
@@ -514,50 +452,32 @@ export default function SupervisorTeams() {
           </div>
 
           {/* BODY */}
-          <div
-            style={{
-              padding: 26,
-              display: 'grid',
-              gridTemplateColumns: '1.2fr .8fr',
-              gap: 24
-            }}
-          >
-            {/* LEFT SIDE */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div className="member-modal-body">
+            
+            {/* LEFT */}
+            <div className="member-left-column">
+
               {/* CURRENT PROJECTS */}
-              <div
-                style={{
-                  padding: 22,
-                  borderRadius: 22,
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)'
-                }}
-              >
-                <h3 style={{ marginBottom: 18, fontWeight: 900 }}>
+              <div className="member-section">
+                <h3 className="member-section-title">
                   Current Projects
                 </h3>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div className="member-flex-col">
                   {currentProjects.map((p, i) => (
                     <div
                       key={i}
-                      style={{
-                        padding: 16,
-                        borderRadius: 16,
-                        background: 'var(--bg-card)',
-                        border: '1px solid var(--border-subtle)'
-                      }}
+                      className="member-inner-card"
                     >
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          marginBottom: 10
-                        }}
-                      >
+                      <div className="member-project-top">
                         <div>
-                          <h4 style={{ fontWeight: 800 }}>{p.name}</h4>
-                          <p style={{ fontSize: 12 }}>{p.role}</p>
+                          <h4 style={{ fontWeight: 800 }}>
+                            {p.name}
+                          </h4>
+
+                          <p style={{ fontSize: 12 }}>
+                            {p.role}
+                          </p>
                         </div>
 
                         <span className="badge badge-blue">
@@ -565,31 +485,16 @@ export default function SupervisorTeams() {
                         </span>
                       </div>
 
-                      <div
-                        style={{
-                          height: 8,
-                          borderRadius: 999,
-                          overflow: 'hidden',
-                          background: '#23263a'
-                        }}
-                      >
+                      <div className="member-progress-bg">
                         <div
+                          className="member-progress-fill"
                           style={{
-                            width: `${p.progress}%`,
-                            height: '100%',
-                            background:
-                              'linear-gradient(90deg,#6366f1,#2dd4bf)'
+                            width: `${p.progress}%`
                           }}
                         />
                       </div>
 
-                      <p
-                        style={{
-                          marginTop: 8,
-                          fontSize: 12,
-                          textAlign: 'right'
-                        }}
-                      >
+                      <p className="member-progress-text">
                         {p.progress}% Completed
                       </p>
                     </div>
@@ -597,35 +502,23 @@ export default function SupervisorTeams() {
                 </div>
               </div>
 
-              {/* COMPLETED PROJECTS */}
-              <div
-                style={{
-                  padding: 22,
-                  borderRadius: 22,
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)'
-                }}
-              >
-                <h3 style={{ marginBottom: 18, fontWeight: 900 }}>
+              {/* HISTORY */}
+              <div className="member-section">
+                <h3 className="member-section-title">
                   Project History
                 </h3>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div className="member-flex-col">
                   {completedProjects.map((p, i) => (
                     <div
                       key={i}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: 14,
-                        borderRadius: 14,
-                        background: 'var(--bg-card)',
-                        border: '1px solid var(--border-subtle)'
-                      }}
+                      className="member-history-card"
                     >
                       <div>
-                        <h4 style={{ fontWeight: 800 }}>{p.name}</h4>
+                        <h4 style={{ fontWeight: 800 }}>
+                          {p.name}
+                        </h4>
+
                         <p style={{ fontSize: 12 }}>
                           Duration: {p.duration}
                         </p>
@@ -640,47 +533,22 @@ export default function SupervisorTeams() {
               </div>
 
               {/* TIMELINE */}
-              <div
-                style={{
-                  padding: 22,
-                  borderRadius: 22,
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)'
-                }}
-              >
-                <h3 style={{ marginBottom: 20, fontWeight: 900 }}>
+              <div className="member-section">
+                <h3 className="member-section-title">
                   Work Timeline
                 </h3>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div className="member-flex-col">
                   {workHistory.map((item, i) => (
                     <div
                       key={i}
-                      style={{
-                        display: 'flex',
-                        gap: 14,
-                        alignItems: 'flex-start'
-                      }}
+                      className="timeline-item"
                     >
-                      <div
-                        style={{
-                          minWidth: 70,
-                          fontWeight: 800,
-                          color: '#6366f1'
-                        }}
-                      >
+                      <div className="timeline-year">
                         {item.year}
                       </div>
 
-                      <div
-                        style={{
-                          flex: 1,
-                          padding: 14,
-                          borderRadius: 14,
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border-subtle)'
-                        }}
-                      >
+                      <div className="timeline-content">
                         {item.text}
                       </div>
                     </div>
@@ -689,28 +557,16 @@ export default function SupervisorTeams() {
               </div>
             </div>
 
-            {/* RIGHT SIDE */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* RIGHT */}
+            <div className="member-right-column">
+
               {/* PERFORMANCE */}
-              <div
-                style={{
-                  padding: 22,
-                  borderRadius: 22,
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)'
-                }}
-              >
-                <h3 style={{ marginBottom: 18, fontWeight: 900 }}>
+              <div className="member-section">
+                <h3 className="member-section-title">
                   Performance
                 </h3>
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: 12
-                  }}
-                >
+                <div className="performance-grid">
                   {[
                     {
                       label: 'Tasks',
@@ -738,70 +594,51 @@ export default function SupervisorTeams() {
                   ].map((s, i) => (
                     <div
                       key={i}
-                      style={{
-                        padding: 18,
-                        borderRadius: 16,
-                        textAlign: 'center',
-                        background: 'var(--bg-card)',
-                        border: '1px solid var(--border-subtle)'
-                      }}
+                      className="performance-card"
                     >
-                      <h2 style={{ fontWeight: 900 }}>{s.value}</h2>
-                      <p style={{ fontSize: 12 }}>{s.label}</p>
+                      <h2 style={{ fontWeight: 900 }}>
+                        {s.value}
+                      </h2>
+
+                      <p style={{ fontSize: 12 }}>
+                        {s.label}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* SKILLS */}
-              <div
-                style={{
-                  padding: 22,
-                  borderRadius: 22,
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)'
-                }}
-              >
-                <h3 style={{ marginBottom: 16, fontWeight: 900 }}>
+              <div className="member-section">
+                <h3 className="member-section-title">
                   Skills & Expertise
                 </h3>
 
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 8
-                  }}
-                >
-                  {(drawer.skills || '').split(',').map((s, i) => (
-                    <span
-                      key={i}
-                      className="badge badge-gray"
-                      style={{
-                        padding: '8px 12px',
-                        fontSize: 12
-                      }}
-                    >
-                      {s.trim()}
-                    </span>
-                  ))}
+                <div className="skills-wrap">
+                  {(drawer.skills || '')
+                    .split(',')
+                    .map((s, i) => (
+                      <span
+                        key={i}
+                        className="badge badge-gray"
+                        style={{
+                          padding: '8px 12px',
+                          fontSize: 12
+                        }}
+                      >
+                        {s.trim()}
+                      </span>
+                    ))}
                 </div>
               </div>
 
               {/* WORKLOAD */}
-              <div
-                style={{
-                  padding: 22,
-                  borderRadius: 22,
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)'
-                }}
-              >
-                <h3 style={{ marginBottom: 16, fontWeight: 900 }}>
+              <div className="member-section">
+                <h3 className="member-section-title">
                   Workload Overview
                 </h3>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div className="member-flex-col">
                   {[
                     ['Assigned Tasks', 18],
                     ['Completed Sprint Tasks', 12],
@@ -809,31 +646,16 @@ export default function SupervisorTeams() {
                     ['Bug Fixes', 7]
                   ].map(([label, val], i) => (
                     <div key={i}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          marginBottom: 6
-                        }}
-                      >
+                      <div className="workload-top">
                         <span>{label}</span>
                         <b>{val}</b>
                       </div>
 
-                      <div
-                        style={{
-                          height: 7,
-                          borderRadius: 999,
-                          overflow: 'hidden',
-                          background: '#23263a'
-                        }}
-                      >
+                      <div className="member-progress-bg">
                         <div
+                          className="member-progress-fill workload-fill"
                           style={{
-                            width: `${Math.min(val * 5, 100)}%`,
-                            height: '100%',
-                            background:
-                              'linear-gradient(90deg,#6366f1,#8b5cf6)'
+                            width: `${Math.min(val * 5, 100)}%`
                           }}
                         />
                       </div>
@@ -841,9 +663,427 @@ export default function SupervisorTeams() {
                   ))}
                 </div>
               </div>
+
             </div>
           </div>
         </motion.div>
+
+        {/* RESPONSIVE CSS */}
+
+<style>{`
+  .member-modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.75);
+    backdrop-filter:blur(8px);
+    z-index:999999;
+    padding:clamp(8px,2vw,28px);
+    overflow-y:auto;
+  }
+
+  .member-modal{
+    width:100%;
+    max-width:min(1400px,96vw);
+    margin:0 auto;
+    border-radius:clamp(16px,2vw,30px);
+    background:var(--bg-card);
+    border:1px solid var(--border-subtle);
+    overflow:hidden;
+    box-shadow:0 20px 80px rgba(0,0,0,0.45);
+  }
+
+  /* =========================
+     HEADER
+  ========================= */
+
+  .member-modal-header{
+    padding:clamp(16px,2.5vw,34px);
+    background:linear-gradient(
+      135deg,
+      rgba(99,102,241,.15),
+      rgba(45,212,191,.08)
+    );
+    border-bottom:1px solid var(--border-subtle);
+  }
+
+  .member-header-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+
+  .member-header-left{
+    display:flex;
+    gap:clamp(14px,2vw,24px);
+    align-items:center;
+    flex-wrap:wrap;
+    flex:1;
+    min-width:0;
+  }
+
+  .member-avatar-large{
+    width:clamp(64px,8vw,96px);
+    height:clamp(64px,8vw,96px);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    font-size:clamp(20px,2.5vw,30px);
+    flex-shrink:0;
+  }
+
+  .member-header-info{
+    flex:1;
+    min-width:220px;
+  }
+
+  .member-name{
+    font-size:clamp(20px,3vw,34px);
+    font-weight:900;
+    margin-bottom:10px;
+    line-height:1.15;
+    word-break:break-word;
+  }
+
+  .member-badges{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+
+  .member-email{
+    color:var(--text-secondary);
+    font-size:clamp(12px,1.2vw,15px);
+    word-break:break-word;
+  }
+
+  .member-lead{
+    margin-top:6px;
+    font-size:clamp(11px,1vw,13px);
+    color:var(--text-secondary);
+  }
+
+  /* =========================
+     BODY
+  ========================= */
+
+  .member-modal-body{
+    padding:clamp(14px,2vw,30px);
+    display:grid;
+    grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);
+    gap:clamp(14px,2vw,28px);
+  }
+
+  .member-left-column,
+  .member-right-column,
+  .member-flex-col{
+    display:flex;
+    flex-direction:column;
+    gap:clamp(14px,1.5vw,22px);
+    min-width:0;
+  }
+
+  /* =========================
+     SECTIONS
+  ========================= */
+
+  .member-section{
+    padding:clamp(14px,1.8vw,24px);
+    border-radius:clamp(14px,1.5vw,24px);
+    background:var(--bg-secondary);
+    border:1px solid var(--border-subtle);
+  }
+
+  .member-section-title{
+    margin-bottom:clamp(14px,1.5vw,20px);
+    font-weight:900;
+    font-size:clamp(14px,1.4vw,18px);
+  }
+
+  /* =========================
+     INNER CARDS
+  ========================= */
+
+  .member-inner-card,
+  .member-history-card,
+  .timeline-content,
+  .performance-card{
+    padding:clamp(12px,1.4vw,18px);
+    border-radius:clamp(12px,1.3vw,18px);
+    background:var(--bg-card);
+    border:1px solid var(--border-subtle);
+  }
+
+  .member-project-top,
+  .member-history-card,
+  .workload-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+  }
+
+  .member-project-top h4,
+  .member-history-card h4{
+    font-size:clamp(13px,1.3vw,16px);
+    line-height:1.3;
+  }
+
+  .member-project-top p,
+  .member-history-card p{
+    font-size:clamp(11px,1vw,13px) !important;
+  }
+
+  /* =========================
+     PROGRESS
+  ========================= */
+
+  .member-progress-bg{
+    height:clamp(6px,.8vw,8px);
+    border-radius:999px;
+    overflow:hidden;
+    background:#23263a;
+    margin-top:10px;
+  }
+
+  .member-progress-fill{
+    height:100%;
+    background:linear-gradient(
+      90deg,
+      #6366f1,
+      #2dd4bf
+    );
+  }
+
+  .workload-fill{
+    background:linear-gradient(
+      90deg,
+      #6366f1,
+      #8b5cf6
+    );
+  }
+
+  .member-progress-text{
+    margin-top:8px;
+    font-size:clamp(11px,1vw,13px);
+    text-align:right;
+  }
+
+  /* =========================
+     TIMELINE
+  ========================= */
+
+  .timeline-item{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+  }
+
+  .timeline-year{
+    min-width:clamp(55px,6vw,80px);
+    font-weight:800;
+    color:#6366f1;
+    font-size:clamp(12px,1vw,14px);
+  }
+
+  .timeline-content{
+    flex:1;
+    font-size:clamp(12px,1vw,14px);
+    line-height:1.5;
+  }
+
+  /* =========================
+     PERFORMANCE GRID
+  ========================= */
+
+  .performance-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+  }
+
+  .performance-card{
+    text-align:center;
+  }
+
+  .performance-card h2{
+    font-size:clamp(18px,2vw,28px);
+    line-height:1.1;
+  }
+
+  .performance-card p{
+    font-size:clamp(11px,1vw,13px) !important;
+  }
+
+  /* =========================
+     SKILLS
+  ========================= */
+
+  .skills-wrap{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  .skills-wrap .badge{
+    font-size:clamp(10px,1vw,12px) !important;
+    padding:clamp(6px,.8vw,9px) clamp(10px,1vw,14px) !important;
+  }
+
+  /* =========================
+     RESPONSIVE
+  ========================= */
+
+  @media (max-width:1200px){
+
+    .member-modal{
+      max-width:98vw;
+    }
+
+    .member-modal-body{
+      grid-template-columns:1fr;
+    }
+
+    .member-right-column{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+      align-items:start;
+    }
+  }
+
+  @media (max-width:900px){
+
+    .member-modal-overlay{
+      padding:12px;
+    }
+
+    .member-header-top{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+
+    .member-right-column{
+      grid-template-columns:1fr;
+    }
+
+    .member-modal-body{
+      gap:18px;
+    }
+  }
+
+  @media (max-width:768px){
+
+    .member-header-left{
+      align-items:flex-start;
+    }
+
+    .member-modal{
+      border-radius:18px;
+    }
+
+    .timeline-item{
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .timeline-year{
+      min-width:unset;
+    }
+  }
+
+  @media (max-width:560px){
+
+    .member-modal-overlay{
+      padding:6px;
+    }
+
+    .member-modal{
+      border-radius:14px;
+      max-width:100%;
+    }
+
+    .member-modal-header{
+      padding:14px;
+    }
+
+    .member-modal-body{
+      padding:12px;
+      gap:14px;
+    }
+
+    .member-header-left{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+
+    .member-header-info{
+      min-width:100%;
+    }
+
+    .performance-grid{
+      grid-template-columns:1fr;
+    }
+
+    .member-project-top,
+    .member-history-card,
+    .workload-top{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+
+    .member-project-top .badge,
+    .member-history-card .badge{
+      align-self:flex-start;
+    }
+
+    .member-section{
+      padding:12px;
+    }
+
+    .member-badges{
+      gap:6px;
+    }
+
+    .member-badges .badge{
+      font-size:10px !important;
+    }
+
+    .btn{
+      min-height:40px;
+    }
+  }
+
+  @media (max-width:380px){
+
+    .member-name{
+      font-size:18px;
+    }
+
+    .member-avatar-large{
+      width:58px;
+      height:58px;
+      font-size:18px;
+    }
+
+    .member-section-title{
+      font-size:13px;
+    }
+
+    .performance-card h2{
+      font-size:18px;
+    }
+
+    .member-project-top h4,
+    .member-history-card h4{
+      font-size:12px;
+    }
+  }
+`}</style>
       </motion.div>
     );
   })()}
