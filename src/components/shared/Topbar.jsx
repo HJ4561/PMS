@@ -41,48 +41,33 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
   }, []);
 
   return (
-    <header className="topbar">
+    <header className="topbar responsive-topbar">
 
       {/* LEFT */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div className="topbar-left">
         <button className="hamburger" onClick={onMenuClick}>
           <Menu size={18} />
         </button>
 
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 18,
-          fontWeight: 800,
-          whiteSpace: 'nowrap'
-        }}>
-          {title}
-        </h1>
+        <h1 className="topbar-title">{title}</h1>
       </div>
 
       {/* CENTER */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        justifyContent: 'center',
-        padding: '0 16px'
-      }}>
+      <div className="topbar-center">
         {searchBar}
       </div>
 
       {/* RIGHT */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div className="topbar-right">
 
         {actions}
 
-        {/* THEME */}
         <button onClick={toggle} className="btn btn-ghost btn-icon">
           {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
         </button>
 
-        {/* NOTIFICATIONS */}
         <button
-          className="btn btn-ghost btn-icon"
-          style={{ position: 'relative' }}
+          className="btn btn-ghost btn-icon notif-btn"
           onClick={handleNotificationClick}
         >
           <Bell size={17} />
@@ -90,64 +75,36 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
         </button>
 
         {/* PROFILE */}
-        <div ref={profileRef} style={{ position: 'relative' }}>
+        <div ref={profileRef} className="profile-wrapper">
 
           <div
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '4px 8px',
-              borderRadius: 10,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-hover)',
-              cursor: 'pointer',
-              height: 34
-            }}
+            className="profile-btn"
           >
             <div
+              className="avatar-box"
               style={{
-                width: 28,
-                height: 28,
-                borderRadius: 8,
                 background: avatarColor + '25',
-                color: avatarColor,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 11,
-                fontWeight: 700
+                color: avatarColor
               }}
             >
               {initials}
             </div>
 
-            <div style={{ lineHeight: 1 }}>
-              <div style={{ fontSize: 12, fontWeight: 600 }}>
+            <div className="profile-text">
+              <div className="name">
                 {user?.u_name?.split(' ')[0]}
               </div>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+              <div className="role">
                 {user?.role}
               </div>
             </div>
           </div>
 
           {showProfileMenu && (
-            <div style={{
-              position: 'absolute',
-              right: 0,
-              top: 42,
-              width: 160,
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-default)',
-              borderRadius: 10,
-              boxShadow: 'var(--shadow-lg)',
-              zIndex: 400
-            }}>
+            <div className="profile-menu">
               <div
                 onClick={() => window.location.href = `/${user.role}/profile`}
-                style={{ padding: 10, cursor: 'pointer', fontSize: 13 }}
               >
                 Profile
               </div>
@@ -156,7 +113,6 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
                   logout?.();
                   window.location.href = "/login";
                 }}
-                style={{ padding: 10, cursor: 'pointer', fontSize: 13 }}
               >
                 Logout
               </div>
@@ -165,6 +121,168 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
 
         </div>
       </div>
+
+      {/* RESPONSIVE CSS */}
+      <style>{`
+        .responsive-topbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 10px 14px;
+          border-bottom: 1px solid var(--border-subtle);
+          background: var(--bg-secondary);
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+
+        /* LEFT */
+        .topbar-left {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-shrink: 0;
+        }
+
+        .topbar-title {
+          font-size: 16px;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        /* CENTER */
+        .topbar-center {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          max-width: 500px;
+        }
+
+        /* RIGHT */
+        .topbar-right {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+
+        /* PROFILE */
+        .profile-wrapper {
+          position: relative;
+        }
+
+        .profile-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 4px 8px;
+          border-radius: 10px;
+          border: 1px solid var(--border-subtle);
+          background: var(--bg-hover);
+          cursor: pointer;
+          height: 34px;
+        }
+
+        .avatar-box {
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .profile-text .name {
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .profile-text .role {
+          font-size: 10px;
+          color: var(--text-muted);
+        }
+
+        .profile-menu {
+          position: absolute;
+          right: 0;
+          top: 42px;
+          width: 160px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-default);
+          border-radius: 10px;
+          box-shadow: var(--shadow-lg);
+          overflow: hidden;
+        }
+
+        .profile-menu div {
+          padding: 10px;
+          font-size: 13px;
+          cursor: pointer;
+        }
+
+        .profile-menu div:hover {
+          background: var(--bg-secondary);
+        }
+
+        /* ================= MOBILE ================= */
+        @media (max-width: 768px) {
+
+          .topbar-center {
+            display: none; /* hide search bar */
+          }
+
+          .topbar-title {
+            font-size: 14px;
+          }
+
+          .profile-text {
+            display: none; /* save space */
+          }
+
+          .profile-btn {
+            padding: 4px;
+          }
+        }
+
+        @media (max-width: 480px) {
+
+          .responsive-topbar {
+            padding: 8px 10px;
+          }
+
+          .topbar-right {
+            gap: 6px;
+          }
+
+          .btn.btn-ghost.btn-icon {
+            padding: 6px;
+          }
+
+          .hamburger {
+            padding: 6px;
+          }
+
+          .profile-menu {
+            width: 140px;
+            right: -10px;
+          }
+        }
+
+        @media (max-width: 360px) {
+
+          .topbar-title {
+            font-size: 12px;
+          }
+
+          .responsive-topbar {
+            gap: 8px;
+          }
+        }
+      `}</style>
+
     </header>
   );
 }
