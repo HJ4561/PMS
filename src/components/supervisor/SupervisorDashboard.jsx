@@ -223,19 +223,19 @@ export default function SupervisorDashboard() {
             <div className="status-layout">
               {/* PIE */}
               <div className="status-chart">
-                <ResponsiveContainer width="100%" height={260}>
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={statusData}
-                      innerRadius={55}
-                      outerRadius={80}
-                      paddingAngle={3}
-                      dataKey="value"
-                      onMouseEnter={(_, index) =>
-                        setActiveIndex(index)
-                      }
-                      onMouseLeave={() => setActiveIndex(null)}
-                    >
+  data={statusData}
+  innerRadius="45%"
+  outerRadius="75%"
+  paddingAngle={3}
+  dataKey="value"
+  cx="50%"
+  cy="50%"
+  onMouseEnter={(_, index) => setActiveIndex(index)}
+  onMouseLeave={() => setActiveIndex(null)}
+>
                       {statusData.map((entry, index) => (
                         <Cell
                           key={index}
@@ -520,11 +520,12 @@ export default function SupervisorDashboard() {
           gap:24px;
         }
 
-        .status-chart{
-          position:relative;
-          flex:1;
-          min-width:0;
-        }
+        .status-chart {
+  position: relative;
+  flex: 1;
+  min-width: 180px;   /* 👈 prevents collapse */
+  aspect-ratio: 1 / 1; /* 👈 keeps it perfectly square */
+}
 
         .pie-center{
           position:absolute;
@@ -630,15 +631,41 @@ export default function SupervisorDashboard() {
            RESPONSIVE
         ========================= */
 
+        @media (max-width:768px){
+
+  .status-chart{
+    height:220px;
+  }
+
+}
+
+@media (max-width:480px){
+
+  .status-chart{
+    height:200px;
+  }
+
+}
+@media (max-width:900px){
+  .status-layout{
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .status-chart{
+    width:100%;
+    max-width:260px; /* keeps it clean */
+  }
+}
         @media (max-width:1200px){
 
           .dashboard-stats-grid{
             grid-template-columns:repeat(2,1fr);
           }
 
-          .status-layout{
-            flex-direction:column;
-          }
+          // .status-layout{
+          //   flex-direction:column;
+          // }
 
           .status-legend{
             width:100%;

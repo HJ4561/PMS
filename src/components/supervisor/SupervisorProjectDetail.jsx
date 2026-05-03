@@ -54,6 +54,39 @@ export default function ProjectDetail() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [editTask, setEditTask] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [showAddTask, setShowAddTask] = useState(false);
+const [newTask, setNewTask] = useState({
+  title: "",
+  desc: "",
+  priority: "medium",
+  status: "todo",
+  milestone: "",
+  progress: 0,
+});
+
+// 🔥 ADD FUNCTION
+const handleAddTask = () => {
+  if (!newTask.title.trim()) return toast.error("Title required");
+
+  const task = {
+    ...newTask,
+    t_id: Date.now(),
+    p_id: projectId,
+  };
+
+  setTasks((prev) => [...prev, task]);
+  setShowAddTask(false);
+  setNewTask({
+    title: "",
+    desc: "",
+    priority: "medium",
+    status: "todo",
+    milestone: "",
+    progress: 0,
+  });
+
+  toast.success("Task added");
+};
 
   if (!project) return <div>Project not found</div>;
 
@@ -273,6 +306,113 @@ export default function ProjectDetail() {
         </div>
       )}
 
+{/* ADD TASK MODAL */}
+{showAddTask && (
+  <div className="modal-overlay" onClick={() => setShowAddTask(false)}>
+    <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-header">
+        <h2 className="modal-title">Add Task</h2>
+        <button className="icon-btn" onClick={() => setShowAddTask(false)}>
+          <X size={18} />
+        </button>
+      </div>
+
+      <div className="modal-body edit-form">
+        <label className="form-label">Title</label>
+        <input
+          className="input themed-input form-input"
+          value={newTask.title}
+          onChange={(e) =>
+            setNewTask({ ...newTask, title: e.target.value })
+          }
+        />
+
+        <label className="form-label">Description</label>
+        <textarea
+          className="input themed-input form-textarea"
+          value={newTask.desc}
+          onChange={(e) =>
+            setNewTask({ ...newTask, desc: e.target.value })
+          }
+        />
+
+        <div className="form-row-2">
+          <div>
+            <label className="form-label">Priority</label>
+            <select
+              className="input themed-input form-select"
+              value={newTask.priority}
+              onChange={(e) =>
+                setNewTask({ ...newTask, priority: e.target.value })
+              }
+            >
+              {PRIORITY_OPTIONS.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="form-label">Status</label>
+            <select
+              className="input themed-input form-select"
+              value={newTask.status}
+              onChange={(e) =>
+                setNewTask({ ...newTask, status: e.target.value })
+              }
+            >
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <label className="form-label">Milestone</label>
+        <input
+          className="input themed-input form-input"
+          value={newTask.milestone}
+          onChange={(e) =>
+            setNewTask({ ...newTask, milestone: e.target.value })
+          }
+        />
+
+        <label className="form-label">
+          Progress: <strong>{newTask.progress}%</strong>
+        </label>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={newTask.progress}
+          className="range-input"
+          onChange={(e) =>
+            setNewTask({
+              ...newTask,
+              progress: Number(e.target.value),
+            })
+          }
+        />
+      </div>
+
+      <div className="modal-footer">
+        <button
+          className="btn btn-primary btn-sm"
+          onClick={handleAddTask}
+        >
+          Add Task
+        </button>
+
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setShowAddTask(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       {/* DELETE CONFIRM */}
       {showDeleteConfirm !== null && (
         <div
@@ -332,11 +472,21 @@ export default function ProjectDetail() {
           {/* TASKS */}
           <div className="card themed-card">
             <div className="section-title-row">
-              <h3 className="section-title" style={{ marginBottom: 0 }}>
-                <BarChart2 size={16} /> Tasks
-              </h3>
-              <span className="task-count-badge">{tasks.length}</span>
-            </div>
+  <h3 className="section-title" style={{ marginBottom: 0 }}>
+    <BarChart2 size={16} /> Tasks
+  </h3>
+
+  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+    <span className="task-count-badge">{tasks.length}</span>
+
+    <button
+      className="btn btn-primary btn-sm"
+      onClick={() => setShowAddTask(true)}
+    >
+      + Add Task
+    </button>
+  </div>
+</div>
 
             <div className="task-scroll-container">
               <div className="task-list">
