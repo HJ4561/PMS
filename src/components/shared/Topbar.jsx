@@ -40,7 +40,7 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
 
       {/* LEFT: hamburger + title */}
       <div className="tb-left">
-        <button className="tb-icon-btn" onClick={onMenuClick} aria-label="Menu">
+        <button className="tb-icon-btn tb-menu-btn" onClick={onMenuClick} aria-label="Menu">
           <Menu size={18} />
         </button>
         <h1 className="tb-title">{title}</h1>
@@ -118,22 +118,62 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
 
         /* ── LEFT ── */
         .tb-left {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-shrink: 0;
-          min-width: 0;
-        }
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;          /* allow it to take available space */
+  min-width: 0;     /* REQUIRED for ellipsis to work properly */
+}
+          
 
         .tb-title {
-          font-size: 15px;
-          font-weight: 800;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: 160px;
-          color: var(--text-primary);
-        }
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-primary);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  max-width: 100%;   /* no fixed limit */
+}
+  /* Large screens (default) */
+@media (min-width: 1024px) {
+  .tb-title {
+    font-size: 16px;
+  }
+}
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .tb-title {
+    font-size: 15px;
+  }
+}
+
+/* Small tablets */
+@media (max-width: 768px) {
+  .tb-title {
+    font-size: 14px;
+    max-width: 200px; /* controlled trimming */
+  }
+}
+
+/* Mobile */
+@media (max-width: 540px) {
+  .tb-title {
+    font-size: 13px;
+    max-width: 140px;
+  }
+}
+
+/* Very small devices */
+@media (max-width: 360px) {
+  .tb-title {
+    font-size: 12px;
+    max-width: 100px;
+  }
+}
 
         /* ── CENTER ── */
         .tb-center {
@@ -152,12 +192,11 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
 
         /* ── RIGHT ── */
         .tb-right {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          flex-shrink: 0;
-          margin-left: auto;
-        }
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
 
         .tb-actions {
           display: flex;
@@ -165,6 +204,17 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           gap: 6px;
         }
 
+        @media (max-width: 768px) {
+  .tb-title {
+    max-width: 140px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tb-title {
+    max-width: 100px;
+  }
+}
         /* ── ICON BUTTONS ── */
         .tb-icon-btn {
           width: 32px;
@@ -314,6 +364,17 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           .tb-profile-btn { height: 30px; }
           .tb-avatar { width: 22px; height: 22px; font-size: 9px; }
         }
+          /* 🚫 Hide hamburger by default (desktop first approach) */
+.tb-menu-btn {
+  display: none !important;
+}
+
+/* ✅ Show only on small screens */
+@media (max-width: 768px) {
+  .tb-menu-btn {
+    display: flex !important;
+  }
+}
       `}</style>
     </header>
   );
