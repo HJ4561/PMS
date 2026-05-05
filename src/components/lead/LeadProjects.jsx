@@ -146,6 +146,9 @@ export default function LeadProjects() {
     }))
   );
 
+  const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 6;
+
   const [projectModal,    setProjectModal]    = useState(false);
   const [taskAddModal,    setTaskAddModal]    = useState(null);
   const [editProject,     setEditProject]     = useState(null);
@@ -162,16 +165,30 @@ export default function LeadProjects() {
   });
 
   const [taskForm, setTaskForm] = useState({
-    title: '', desc: '', assignedTo: [],
-    status: 'todo', priority: 'medium', milestone: '', progress: 0
-  });
+  title: '',
+  desc: '',
+  assignedTo: [],
+  status: 'todo',
+  priority: 'medium',
+  milestone: '',
+  milestoneDate: '',
+  milestoneOwner: [],
+  progress: 0
+});
 
   const filtered = projects.filter(p => {
-    const s  = p.p_name.toLowerCase().includes(search.toLowerCase()) || p.desc?.toLowerCase().includes(search.toLowerCase());
-    const st = filterStatus   === 'all' || p.status   === filterStatus;
-    const pr = filterPriority === 'all' || p.priority === filterPriority;
-    return s && st && pr;
-  });
+  const s  = p.p_name.toLowerCase().includes(search.toLowerCase()) || p.desc?.toLowerCase().includes(search.toLowerCase());
+  const st = filterStatus   === 'all' || p.status   === filterStatus;
+  const pr = filterPriority === 'all' || p.priority === filterPriority;
+  return s && st && pr;
+});
+
+// pagination
+const totalPages = Math.ceil(filtered.length / itemsPerPage);
+const paginatedProjects = filtered.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
 
   const openNewProject = () => {
     setEditProject(null);
@@ -203,7 +220,12 @@ export default function LeadProjects() {
 
   const addTask = () => {
     if (!taskForm.title.trim()) return;
-    setTasks(prev => [{ t_id: Date.now(), p_id: taskAddModal.p_id, is_deleted: false, ...taskForm }, ...prev]);
+    setTasks(prev => [{
+  t_id: Date.now(),
+  p_id: taskAddModal.p_id,
+  is_deleted: false,
+  ...taskForm
+}, ...prev]);
     setTaskAddModal(null);
   };
 
@@ -243,28 +265,62 @@ export default function LeadProjects() {
       />
 
       <div className="page-container">
+        
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:16 }}>
           <button className="btn btn-primary btn-sm" onClick={openNewProject}>
             <Plus size={14} /> New Project
           </button>
         </div>
 
-        <div style={{ display:'flex', gap:12, marginBottom:24, flexWrap:'wrap' }}>
-          <select className="input" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width:160 }}>
-            <option value="all">All Status</option>
-            {Object.entries(statusConfig).map(([v,c]) => <option key={v} value={v}>{c.label}</option>)}
-          </select>
-          <select className="input" value={filterPriority} onChange={e => setFilterPriority(e.target.value)} style={{ width:160 }}>
-            <option value="all">All Priority</option>
-            {Object.entries(priorityConfig).map(([v,c]) => <option key={v} value={v}>{c.label}</option>)}
-          </select>
-        </div>
+        <div style={{ 
+  display:'flex', 
+  gap:12, 
+  marginBottom:24, 
+  flexWrap:'wrap',
+  alignItems:'center',
+}}>
 
-        {filtered.length === 0
+  {/* LEFT: SEARCH (NEW INLINE) */}
+  <div style={{ position:'relative', width:'100%', maxWidth:260 }}>
+    <Search size={16} style={{
+      position:'absolute',
+      left:12,
+      top:'50%',
+      transform:'translateY(-50%)',
+      color:'var(--text-muted)'
+    }} />
+    <input
+      className="input"
+      placeholder="Search projects..."
+      value={search}
+      onChange={e => setSearch(e.target.value)}
+      style={{ paddingLeft:40, width:'100%' }}
+    />
+  </div>
+
+  {/* RIGHT: FILTERS */}
+  <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+    <select className="input" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width:160 }}>
+      <option value="all">All Status</option>
+      {Object.entries(statusConfig).map(([v,c]) =>
+        <option key={v} value={v}>{c.label}</option>
+      )}
+    </select>
+
+    <select className="input" value={filterPriority} onChange={e => setFilterPriority(e.target.value)} style={{ width:160 }}>
+      <option value="all">All Priority</option>
+      {Object.entries(priorityConfig).map(([v,c]) =>
+        <option key={v} value={v}>{c.label}</option>
+      )}
+    </select>
+  </div>
+</div>
+
+        {paginatedProjects.length === 0
           ? <EmptyState icon={FolderOpen} title="No projects found" desc="Try adjusting filters." />
           : (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16 }}>
-              {filtered.map(project => {
+              {paginatedProjects.map(project => {
                 const progress  = getProjectProgress(project.p_id);
                 const lead      = getUserById(project.created_by);
                 const members   = getProjectMembers(project);
@@ -341,6 +397,34 @@ export default function LeadProjects() {
             </div>
           )
         }
+        {totalPages > 1 && (
+  <div style={{
+    display:'flex',
+    justifyContent:'center',
+    gap:10,
+    marginTop:20
+  }}>
+    <button
+      className="btn btn-secondary btn-sm"
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage(p => p - 1)}
+    >
+      Prev
+    </button>
+
+    <span style={{ padding:'6px 10px', fontSize:13 }}>
+      Page {currentPage} of {totalPages}
+    </span>
+
+    <button
+      className="btn btn-secondary btn-sm"
+      disabled={currentPage === totalPages}
+      onClick={() => setCurrentPage(p => p + 1)}
+    >
+      Next
+    </button>
+  </div>
+)}
       </div>
 
       {/* TASK LIST MODAL */}
@@ -526,6 +610,20 @@ export default function LeadProjects() {
               <label className="lp-label">Milestone</label>
               <input className="input lp-input" placeholder="e.g. Phase 1 Release"
                 value={editTask.milestone || ''} onChange={e => setEditTask({ ...editTask, milestone: e.target.value })}/>
+                <label className="lp-label">Milestone Date</label>
+<input
+  type="date"
+  className="input lp-input"
+  value={taskForm.milestoneDate}
+  onChange={e => setTaskForm({ ...taskForm, milestoneDate: e.target.value })}
+/>
+
+<label className="lp-label">Milestone Owner</label>
+<MemberPicker
+  selected={taskForm.milestoneOwner}
+  onChange={ids => setTaskForm({ ...taskForm, milestoneOwner: ids })}
+  label=""
+/>
               <label className="lp-label">Progress: <strong>{editTask.progress}%</strong></label>
               <input type="range" min={0} max={100} className="lp-range" value={editTask.progress}
                 onChange={e => setEditTask({ ...editTask, progress: Number(e.target.value) })}/>
@@ -574,6 +672,20 @@ export default function LeadProjects() {
               <label className="lp-label">Milestone</label>
               <input className="input lp-input" placeholder="e.g. Phase 1 Release" value={taskForm.milestone}
                 onChange={e => setTaskForm({ ...taskForm, milestone: e.target.value })}/>
+                <label className="lp-label">Milestone Date</label>
+<input
+  type="date"
+  className="input lp-input"
+  value={taskForm.milestoneDate}
+  onChange={e => setTaskForm({ ...taskForm, milestoneDate: e.target.value })}
+/>
+
+<label className="lp-label">Milestone Owner</label>
+<MemberPicker
+  selected={taskForm.milestoneOwner}
+  onChange={ids => setTaskForm({ ...taskForm, milestoneOwner: ids })}
+  label=""
+/>
               <label className="lp-label">Initial Progress: <strong>{taskForm.progress}%</strong></label>
               <input type="range" min={0} max={100} className="lp-range" value={taskForm.progress}
                 onChange={e => setTaskForm({ ...taskForm, progress: Number(e.target.value) })}/>

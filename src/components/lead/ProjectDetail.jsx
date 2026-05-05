@@ -47,7 +47,7 @@ export default function ProjectDetail() {
     TASKS.filter((t) => t.p_id === projectId).map((t) => ({
       ...t,
       progress: t.progress ?? (t.status === "done" ? 100 : t.status === "in_progress" ? 50 : t.status === "review" ? 75 : 0),
-      milestone: t.milestone ?? "",
+      milestones: t.milestones ?? [],
     }))
   );
 
@@ -61,7 +61,7 @@ const [newTask, setNewTask] = useState({
   priority: "medium",
   status: "todo",
   progress: 0,
-  milestone: "",
+  milestones: [],
 });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const handleAddTask = () => {
@@ -170,12 +170,27 @@ const [newTask, setNewTask] = useState({
                 <PriorityBadge priority={selectedTask.priority} />
               </div>
 
-              {selectedTask.milestone && (
-                <div className="milestone-tag">
-                  <Milestone size={13} />
-                  {selectedTask.milestone}
-                </div>
-              )}
+              {selectedTask.milestones?.length > 0 && (
+  <div style={{ marginTop: 12 }}>
+    <h4 className="form-label">Milestones in this Task</h4>
+
+    {selectedTask.milestones.map((m, i) => {
+      const member = members.find(mem => mem.tm_id === m.assignedTo);
+
+      return (
+        <div key={i} className="milestone-box">
+          <div><strong>{m.title}</strong></div>
+
+          <div className="muted">📅 {m.dueDate}</div>
+
+          <div className="muted">
+            👤 {member ? member.name : "Unassigned"}
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
 
               <div className="progress-section">
                 <div className="progress-label-row">
@@ -190,6 +205,22 @@ const [newTask, setNewTask] = useState({
                 </div>
               </div>
             </div>
+            {/* TEAM WORKING ON PROJECT */}
+<div className="card themed-card-inner" style={{ marginTop: 16 }}>
+  <h4 className="form-label">Team Working on Project</h4>
+
+  <div className="team-list">
+    {members.map((m) => (
+      <div key={m.tm_id} className="member-row">
+        <Avatar name={m.name} size="sm" />
+        <div>
+          <div className="member-name">{m.name}</div>
+          <div className="muted">{m.role}</div>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
 
             <div className="modal-footer">
               <button
@@ -268,13 +299,98 @@ const [newTask, setNewTask] = useState({
                 </div>
               </div>
 
-              <label className="form-label">Milestone</label>
-              <input
-                className="input themed-input form-input"
-                placeholder="e.g. Phase 1 Release"
-                value={editTask.milestone}
-                onChange={(e) => setEditTask({ ...editTask, milestone: e.target.value })}
-              />
+              {/* MILESTONES EDIT SECTION */}
+<div style={{ marginTop: 10 }}>
+  <label className="form-label">Milestones</label>
+
+  {editTask.milestones?.map((m, i) => (
+    <div
+      key={i}
+      style={{
+        padding: 10,
+        border: "1px solid var(--border-subtle)",
+        borderRadius: 10,
+        marginBottom: 10,
+        background: "var(--bg-secondary)",
+      }}
+    >
+      {/* TITLE */}
+      <input
+        className="input themed-input form-input"
+        placeholder="Milestone title"
+        value={m.title}
+        onChange={(e) => {
+          const updated = [...editTask.milestones];
+          updated[i].title = e.target.value;
+          setEditTask({ ...editTask, milestones: updated });
+        }}
+      />
+
+      {/* DATE */}
+      <input
+        type="date"
+        className="input themed-input form-input"
+        value={m.dueDate}
+        onChange={(e) => {
+          const updated = [...editTask.milestones];
+          updated[i].dueDate = e.target.value;
+          setEditTask({ ...editTask, milestones: updated });
+        }}
+      />
+
+      {/* ASSIGN MEMBER */}
+      <select
+        className="input themed-input form-select"
+        value={m.assignedTo}
+        onChange={(e) => {
+          const updated = [...editTask.milestones];
+          updated[i].assignedTo = Number(e.target.value);
+          setEditTask({ ...editTask, milestones: updated });
+        }}
+      >
+        <option value="">Assign Member</option>
+        {members.map((mem) => (
+          <option key={mem.tm_id} value={mem.tm_id}>
+            {mem.name}
+          </option>
+        ))}
+      </select>
+
+      {/* REMOVE MILESTONE */}
+      <button
+        className="btn btn-danger btn-sm"
+        style={{ marginTop: 6 }}
+        onClick={() => {
+          const updated = editTask.milestones.filter((_, index) => index !== i);
+          setEditTask({ ...editTask, milestones: updated });
+        }}
+      >
+        Remove
+      </button>
+    </div>
+  ))}
+
+  {/* ADD MILESTONE BUTTON */}
+  <button
+    className="btn btn-secondary btn-sm"
+    onClick={() =>
+      setEditTask({
+        ...editTask,
+        milestones: [
+          ...(editTask.milestones || []),
+          {
+            title: "",
+            dueDate: "",
+            assignedTo: "",
+          },
+        ],
+      })
+    }
+  >
+    + Add Milestone
+  </button>
+</div>
+              
 
               <label className="form-label">
                 Progress: <strong>{editTask.progress}%</strong>
@@ -310,100 +426,205 @@ const [newTask, setNewTask] = useState({
       )}
 
       {/* ADD TASK MODAL */}
+{/* ADD TASK MODAL */}
 {showAddTask && (
   <div className="modal-overlay" onClick={() => setShowAddTask(false)}>
     <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+
       <div className="modal-header">
-        <h2 className="modal-title">Add New Task</h2>
+        <h2 className="modal-title">Create New Task</h2>
         <button className="icon-btn" onClick={() => setShowAddTask(false)}>
           <X size={18} />
         </button>
       </div>
 
       <div className="modal-body edit-form">
-        <label className="form-label">Title</label>
-        <input
-          className="input themed-input form-input"
-          value={newTask.title}
-          onChange={(e) =>
-            setNewTask({ ...newTask, title: e.target.value })
-          }
-        />
 
-        <label className="form-label">Description</label>
-        <textarea
-          className="input themed-input form-textarea"
-          value={newTask.desc}
-          onChange={(e) =>
-            setNewTask({ ...newTask, desc: e.target.value })
-          }
-        />
+        {/* ───── BASIC INFO ───── */}
+        <div className="form-section">
+          <h4 className="form-label">Basic Information</h4>
 
-        <div className="form-row-2">
-          <div>
-            <label className="form-label">Priority</label>
-            <select
-              className="input themed-input form-select"
-              value={newTask.priority}
-              onChange={(e) =>
-                setNewTask({ ...newTask, priority: e.target.value })
-              }
-            >
-              {PRIORITY_OPTIONS.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
+          <input
+            className="input themed-input form-input"
+            placeholder="Task title"
+            value={newTask.title}
+            onChange={(e) =>
+              setNewTask({ ...newTask, title: e.target.value })
+            }
+          />
 
-          <div>
-            <label className="form-label">Status</label>
-            <select
-              className="input themed-input form-select"
-              value={newTask.status}
-              onChange={(e) =>
-                setNewTask({ ...newTask, status: e.target.value })
-              }
-            >
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+          <textarea
+            className="input themed-input form-textarea"
+            placeholder="Task description"
+            value={newTask.desc}
+            onChange={(e) =>
+              setNewTask({ ...newTask, desc: e.target.value })
+            }
+          />
+        </div>
+
+        {/* ───── ASSIGNMENT ───── */}
+        <div className="form-section">
+          <h4 className="form-label">Assignment & Priority</h4>
+
+          <div className="form-row-2">
+
+            <div>
+              <label className="form-label">Priority</label>
+              <select
+                className="input themed-input form-select"
+                value={newTask.priority}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, priority: e.target.value })
+                }
+              >
+                {PRIORITY_OPTIONS.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="form-label">Status</label>
+              <select
+                className="input themed-input form-select"
+                value={newTask.status}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, status: e.target.value })
+                }
+              >
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
-        <label className="form-label">Milestone</label>
-        <input
-          className="input themed-input form-input"
-          value={newTask.milestone}
-          onChange={(e) =>
-            setNewTask({ ...newTask, milestone: e.target.value })
-          }
-        />
+        {/* ───── TEAM ASSIGNMENT ───── */}
+        <div className="form-section">
+          <h4 className="form-label">Assign Team Member</h4>
 
-        <label className="form-label">
-          Progress: <strong>{newTask.progress}%</strong>
-        </label>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          className="range-input"
-          value={newTask.progress}
-          onChange={(e) =>
-            setNewTask({
-              ...newTask,
-              progress: Number(e.target.value),
-            })
-          }
-        />
+          <select
+            className="input themed-input form-select"
+            value={newTask.assignedTo || ""}
+            onChange={(e) =>
+              setNewTask({ ...newTask, assignedTo: Number(e.target.value) })
+            }
+          >
+            <option value="">Select Member</option>
+            {members.map((mem) => (
+              <option key={mem.tm_id} value={mem.tm_id}>
+                {mem.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* ───── PROGRESS ───── */}
+        <div className="form-section">
+          <h4 className="form-label">
+            Progress: <strong>{newTask.progress}%</strong>
+          </h4>
+
+          <input
+            type="range"
+            min={0}
+            max={100}
+            className="range-input"
+            value={newTask.progress}
+            onChange={(e) =>
+              setNewTask({
+                ...newTask,
+                progress: Number(e.target.value),
+              })
+            }
+          />
+        </div>
+
+        {/* ───── MILESTONES ───── */}
+        <div className="form-section">
+          <h4 className="form-label">Milestones</h4>
+
+          {newTask.milestones.map((m, i) => (
+            <div key={i} className="milestone-card">
+
+              <input
+                className="input themed-input form-input"
+                placeholder="Milestone title"
+                value={m.title}
+                onChange={(e) => {
+                  const updated = [...newTask.milestones];
+                  updated[i].title = e.target.value;
+                  setNewTask({ ...newTask, milestones: updated });
+                }}
+              />
+
+              <div className="form-row-2">
+
+                <input
+                  type="date"
+                  className="input themed-input form-input"
+                  value={m.dueDate}
+                  onChange={(e) => {
+                    const updated = [...newTask.milestones];
+                    updated[i].dueDate = e.target.value;
+                    setNewTask({ ...newTask, milestones: updated });
+                  }}
+                />
+
+                <select
+                  className="input themed-input form-select"
+                  value={m.assignedTo}
+                  onChange={(e) => {
+                    const updated = [...newTask.milestones];
+                    updated[i].assignedTo = Number(e.target.value);
+                    setNewTask({ ...newTask, milestones: updated });
+                  }}
+                >
+                  <option value="">Assign</option>
+                  {members.map((mem) => (
+                    <option key={mem.tm_id} value={mem.tm_id}>
+                      {mem.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={() => {
+                  const updated = newTask.milestones.filter((_, idx) => idx !== i);
+                  setNewTask({ ...newTask, milestones: updated });
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() =>
+              setNewTask({
+                ...newTask,
+                milestones: [
+                  ...newTask.milestones,
+                  { title: "", dueDate: "", assignedTo: "" },
+                ],
+              })
+            }
+          >
+            + Add Milestone
+          </button>
+        </div>
+
       </div>
 
+      {/* FOOTER */}
       <div className="modal-footer">
-        <button
-          className="btn btn-primary btn-sm"
-          onClick={handleAddTask}
-        >
-          Add Task
+        <button className="btn btn-primary btn-sm" onClick={handleAddTask}>
+          Create Task
         </button>
 
         <button
@@ -416,7 +637,6 @@ const [newTask, setNewTask] = useState({
     </div>
   </div>
 )}
-
       {/* DELETE CONFIRM */}
       {showDeleteConfirm !== null && (
         <div
@@ -509,12 +729,25 @@ const [newTask, setNewTask] = useState({
 
                     <p className="muted task-desc">{t.desc}</p>
 
-                    {t.milestone && (
-                      <div className="milestone-tag small-tag">
-                        <Milestone size={11} />
-                        {t.milestone}
-                      </div>
-                    )}
+                    {t.milestones?.length > 0 && (
+  <div style={{ marginBottom: 8 }}>
+    {t.milestones.map((m, i) => {
+      const member = members.find(mem => mem.tm_id === m.assignedTo);
+
+      return (
+        <div key={i} className="milestone-tag small-tag">
+          <Milestone size={11} />
+          <div>
+            <strong>{m.title}</strong>
+            <div className="muted">
+              {m.dueDate} • {member ? member.name : "Unassigned"}
+            </div>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
 
                     <div className="task-bottom">
                       <StatusBadge status={t.status} />

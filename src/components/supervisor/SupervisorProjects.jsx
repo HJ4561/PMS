@@ -1,11 +1,11 @@
-// components/supervisor/SupervisorProjects.jsx
+// components/lead/LeadProjects.jsx
 
 import { useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import {
   Search, FolderOpen, Plus, Pencil, Trash2,
-  X, ListTodo, Milestone, ChevronDown,
-  Users, Check
+  X, ListTodo, Milestone, Flag, ChevronDown,
+  BarChart2, Pin, PinOff, Eye, Users, UserPlus, Check
 } from 'lucide-react';
 
 import Topbar from '../shared/Topbar';
@@ -146,6 +146,9 @@ export default function LeadProjects() {
     }))
   );
 
+  const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 6;
+
   const [projectModal,    setProjectModal]    = useState(false);
   const [taskAddModal,    setTaskAddModal]    = useState(null);
   const [editProject,     setEditProject]     = useState(null);
@@ -162,16 +165,30 @@ export default function LeadProjects() {
   });
 
   const [taskForm, setTaskForm] = useState({
-    title: '', desc: '', assignedTo: [],
-    status: 'todo', priority: 'medium', milestone: '', progress: 0
-  });
+  title: '',
+  desc: '',
+  assignedTo: [],
+  status: 'todo',
+  priority: 'medium',
+  milestone: '',
+  milestoneDate: '',
+  milestoneOwner: [],
+  progress: 0
+});
 
   const filtered = projects.filter(p => {
-    const s  = p.p_name.toLowerCase().includes(search.toLowerCase()) || p.desc?.toLowerCase().includes(search.toLowerCase());
-    const st = filterStatus   === 'all' || p.status   === filterStatus;
-    const pr = filterPriority === 'all' || p.priority === filterPriority;
-    return s && st && pr;
-  });
+  const s  = p.p_name.toLowerCase().includes(search.toLowerCase()) || p.desc?.toLowerCase().includes(search.toLowerCase());
+  const st = filterStatus   === 'all' || p.status   === filterStatus;
+  const pr = filterPriority === 'all' || p.priority === filterPriority;
+  return s && st && pr;
+});
+
+// pagination
+const totalPages = Math.ceil(filtered.length / itemsPerPage);
+const paginatedProjects = filtered.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
 
   const openNewProject = () => {
     setEditProject(null);
@@ -203,7 +220,12 @@ export default function LeadProjects() {
 
   const addTask = () => {
     if (!taskForm.title.trim()) return;
-    setTasks(prev => [{ t_id: Date.now(), p_id: taskAddModal.p_id, is_deleted: false, ...taskForm }, ...prev]);
+    setTasks(prev => [{
+  t_id: Date.now(),
+  p_id: taskAddModal.p_id,
+  is_deleted: false,
+  ...taskForm
+}, ...prev]);
     setTaskAddModal(null);
   };
 
@@ -243,29 +265,62 @@ export default function LeadProjects() {
       />
 
       <div className="page-container">
-
+        
         <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:16 }}>
           <button className="btn btn-primary btn-sm" onClick={openNewProject}>
             <Plus size={14} /> New Project
           </button>
         </div>
 
-        <div style={{ display:'flex', gap:12, marginBottom:24, flexWrap:'wrap' }}>
-          <select className="input" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width:160 }}>
-            <option value="all">All Status</option>
-            {Object.entries(statusConfig).map(([v,c]) => <option key={v} value={v}>{c.label}</option>)}
-          </select>
-          <select className="input" value={filterPriority} onChange={e => setFilterPriority(e.target.value)} style={{ width:160 }}>
-            <option value="all">All Priority</option>
-            {Object.entries(priorityConfig).map(([v,c]) => <option key={v} value={v}>{c.label}</option>)}
-          </select>
-        </div>
+        <div style={{ 
+  display:'flex', 
+  gap:12, 
+  marginBottom:24, 
+  flexWrap:'wrap',
+  alignItems:'center',
+}}>
 
-        {filtered.length === 0
+  {/* LEFT: SEARCH (NEW INLINE) */}
+  <div style={{ position:'relative', width:'100%', maxWidth:260 }}>
+    <Search size={16} style={{
+      position:'absolute',
+      left:12,
+      top:'50%',
+      transform:'translateY(-50%)',
+      color:'var(--text-muted)'
+    }} />
+    <input
+      className="input"
+      placeholder="Search projects..."
+      value={search}
+      onChange={e => setSearch(e.target.value)}
+      style={{ paddingLeft:40, width:'100%' }}
+    />
+  </div>
+
+  {/* RIGHT: FILTERS */}
+  <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+    <select className="input" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ width:160 }}>
+      <option value="all">All Status</option>
+      {Object.entries(statusConfig).map(([v,c]) =>
+        <option key={v} value={v}>{c.label}</option>
+      )}
+    </select>
+
+    <select className="input" value={filterPriority} onChange={e => setFilterPriority(e.target.value)} style={{ width:160 }}>
+      <option value="all">All Priority</option>
+      {Object.entries(priorityConfig).map(([v,c]) =>
+        <option key={v} value={v}>{c.label}</option>
+      )}
+    </select>
+  </div>
+</div>
+
+        {paginatedProjects.length === 0
           ? <EmptyState icon={FolderOpen} title="No projects found" desc="Try adjusting filters." />
           : (
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16 }}>
-              {filtered.map(project => {
+              {paginatedProjects.map(project => {
                 const progress  = getProjectProgress(project.p_id);
                 const lead      = getUserById(project.created_by);
                 const members   = getProjectMembers(project);
@@ -277,23 +332,21 @@ export default function LeadProjects() {
                   <div key={project.p_id} className="card animate-fade-in lp-project-card"
                     onClick={() => navigate(`/supervisor/projects/${project.p_id}`)}>
 
-                    {/* ── TOP ROW: badges LEFT · actions RIGHT — never overlap ── */}
+                    {/* ── TOP ROW: badges LEFT, action icons RIGHT — clear separation ── */}
                     <div className="lp-card-top" onClick={e => e.stopPropagation()}>
                       <div className="lp-card-badges">
                         <PriorityBadge priority={project.priority} />
                         <StatusBadge   status={project.status} />
                       </div>
                       <div className="lp-card-actions">
-                        <button className="lp-icon-btn" title="View Tasks"
-                          onClick={() => setTaskListModal(project)}>
+                        <button className="lp-icon-btn" title="View Tasks" onClick={() => setTaskListModal(project)}>
                           <ListTodo size={13}/>
                         </button>
                         <button className="lp-icon-btn" title="Edit Project"
                           onClick={() => { setEditProject(project); setForm({ ...project, members: project.members || [] }); setProjectModal(true); }}>
                           <Pencil size={13}/>
                         </button>
-                        <button className="lp-icon-btn" title="Add Task"
-                          onClick={e => openAddTask(project, e)}>
+                        <button className="lp-icon-btn" title="Add Task" onClick={e => openAddTask(project, e)}>
                           <Plus size={13}/>
                         </button>
                         <button className="lp-icon-btn danger" title="Delete Project"
@@ -344,6 +397,34 @@ export default function LeadProjects() {
             </div>
           )
         }
+        {totalPages > 1 && (
+  <div style={{
+    display:'flex',
+    justifyContent:'center',
+    gap:10,
+    marginTop:20
+  }}>
+    <button
+      className="btn btn-secondary btn-sm"
+      disabled={currentPage === 1}
+      onClick={() => setCurrentPage(p => p - 1)}
+    >
+      Prev
+    </button>
+
+    <span style={{ padding:'6px 10px', fontSize:13 }}>
+      Page {currentPage} of {totalPages}
+    </span>
+
+    <button
+      className="btn btn-secondary btn-sm"
+      disabled={currentPage === totalPages}
+      onClick={() => setCurrentPage(p => p + 1)}
+    >
+      Next
+    </button>
+  </div>
+)}
       </div>
 
       {/* TASK LIST MODAL */}
@@ -529,6 +610,20 @@ export default function LeadProjects() {
               <label className="lp-label">Milestone</label>
               <input className="input lp-input" placeholder="e.g. Phase 1 Release"
                 value={editTask.milestone || ''} onChange={e => setEditTask({ ...editTask, milestone: e.target.value })}/>
+                <label className="lp-label">Milestone Date</label>
+<input
+  type="date"
+  className="input lp-input"
+  value={taskForm.milestoneDate}
+  onChange={e => setTaskForm({ ...taskForm, milestoneDate: e.target.value })}
+/>
+
+<label className="lp-label">Milestone Owner</label>
+<MemberPicker
+  selected={taskForm.milestoneOwner}
+  onChange={ids => setTaskForm({ ...taskForm, milestoneOwner: ids })}
+  label=""
+/>
               <label className="lp-label">Progress: <strong>{editTask.progress}%</strong></label>
               <input type="range" min={0} max={100} className="lp-range" value={editTask.progress}
                 onChange={e => setEditTask({ ...editTask, progress: Number(e.target.value) })}/>
@@ -577,6 +672,20 @@ export default function LeadProjects() {
               <label className="lp-label">Milestone</label>
               <input className="input lp-input" placeholder="e.g. Phase 1 Release" value={taskForm.milestone}
                 onChange={e => setTaskForm({ ...taskForm, milestone: e.target.value })}/>
+                <label className="lp-label">Milestone Date</label>
+<input
+  type="date"
+  className="input lp-input"
+  value={taskForm.milestoneDate}
+  onChange={e => setTaskForm({ ...taskForm, milestoneDate: e.target.value })}
+/>
+
+<label className="lp-label">Milestone Owner</label>
+<MemberPicker
+  selected={taskForm.milestoneOwner}
+  onChange={ids => setTaskForm({ ...taskForm, milestoneOwner: ids })}
+  label=""
+/>
               <label className="lp-label">Initial Progress: <strong>{taskForm.progress}%</strong></label>
               <input type="range" min={0} max={100} className="lp-range" value={taskForm.progress}
                 onChange={e => setTaskForm({ ...taskForm, progress: Number(e.target.value) })}/>
@@ -752,7 +861,7 @@ export default function LeadProjects() {
           cursor: pointer;
         }
 
-        /* KEY: top row — badges flex-left, actions flex-right, no overlap */
+        /* KEY FIX: top row — badges left, icons right, never overlap */
         .lp-card-top {
           display: flex;
           align-items: center;
@@ -773,6 +882,7 @@ export default function LeadProjects() {
           overflow: hidden;
         }
 
+        /* Keep each badge compact and truncated if needed */
         .lp-card-badges > * {
           font-size: 10.5px !important;
           padding: 2px 7px !important;
@@ -847,8 +957,11 @@ export default function LeadProjects() {
         .lp-priority-select:focus { border-color: var(--accent-primary); }
 
         .lp-mini-progress { display: flex; align-items: center; gap: 6px; }
+
         .lp-mini-track { width: 70px; height: 5px; background: var(--border-subtle); border-radius: 10px; overflow: hidden; }
+
         .lp-mini-fill { height: 100%; background: var(--accent-primary); border-radius: 10px; transition: width 0.3s; }
+
         .lp-mini-pct { font-size: 11px; font-weight: 700; color: var(--text-secondary); white-space: nowrap; }
 
         .lp-milestone-tag {
@@ -861,10 +974,13 @@ export default function LeadProjects() {
         .lp-milestone-tag.lg { font-size: 12px; padding: 4px 10px; margin-bottom: 12px; }
 
         .lp-progress-section { margin-top: 16px; }
+
         .lp-progress-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .lp-progress-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
         .lp-progress-pct   { font-size: 15px; font-weight: 800; color: var(--accent-primary); }
+
         .lp-progress-track { width: 100%; height: 10px; background: var(--border-subtle); border-radius: 10px; overflow: hidden; }
+
         .lp-progress-fill {
           height: 100%;
           background: linear-gradient(90deg, var(--accent-primary), color-mix(in srgb, var(--accent-primary) 60%, #a78bfa));
@@ -888,7 +1004,9 @@ export default function LeadProjects() {
         }
 
         .lp-textarea { min-height: 80px; resize: vertical; }
+
         .lp-form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
         .lp-range { width: 100%; accent-color: var(--accent-primary); cursor: pointer; }
 
         .lp-confirm { max-width: 360px; text-align: center; padding-top: 28px; }
@@ -906,6 +1024,7 @@ export default function LeadProjects() {
 
         .btn-danger { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
         .btn-danger:hover { background: rgba(239,68,68,0.2); }
+
         .btn-secondary { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-default); }
         .btn-secondary:hover { border-color: var(--accent-primary); }
 
@@ -927,7 +1046,7 @@ export default function LeadProjects() {
           position: absolute; top: calc(100% + 6px); left: 0; right: 0;
           background: var(--bg-card); border: 1px solid var(--border-default);
           border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-          z-index: 20; max-height: 220px; overflow-y: auto;
+          z-index: 20; overflow: hidden; max-height: 220px; overflow-y: auto;
           scrollbar-width: thin; scrollbar-color: var(--border-default) transparent;
         }
 
@@ -1005,4 +1124,4 @@ export default function LeadProjects() {
       `}</style>
     </div>
   );
-}
+} 

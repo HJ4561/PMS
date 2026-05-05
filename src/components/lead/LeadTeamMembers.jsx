@@ -1,4 +1,5 @@
-// components/lead/LeadTeamMembers.jsx
+// components/supervisor/SupervisorTeams.jsx
+
 import { useState } from 'react';
 import { Search, UserPlus, Trash2, Pencil, X } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
@@ -18,13 +19,13 @@ const defaultForm = {
   qualification: '',
   experience: '',
   skills: '',
-  email: ''
+  email: '',
+  description: ''
 };
-
-export default function LeadTeamMembers() {
-  const [search, setSearch] = useState('');
+export default function SupervisorTeams() {
   const { onMenuClick } = useOutletContext();
 
+  const [search, setSearch] = useState('');
   const [members, setMembers] = useState(
     TEAM_MEMBERS.filter(m => !m.is_deleted)
   );
@@ -111,6 +112,15 @@ export default function LeadTeamMembers() {
   const closeAddModal = () => { setShowAdd(false); setForm(defaultForm); };
   const closeEditModal = () => { setShowEdit(false); setSelected(null); setForm(defaultForm); };
 
+  const [currentPage, setCurrentPage] = useState(1);
+const itemsPerPage = 6;
+
+const totalPages = Math.ceil(filtered.length / itemsPerPage);
+
+const paginatedMembers = filtered.slice(
+  (currentPage - 1) * itemsPerPage,
+  currentPage * itemsPerPage
+);
   return (
     <div>
       <Topbar
@@ -119,21 +129,72 @@ export default function LeadTeamMembers() {
         searchBar={
           <div style={{ position: 'relative', width: '100%', maxWidth: 380 }}>
             <Search size={14} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input className="input" placeholder="Search by name, role, or skills…" value={search}
-              onChange={e => setSearch(e.target.value)} style={{ paddingLeft: 34, width: '100%' }} />
+            <input
+              className="input"
+              placeholder="Search by name, role, or skills…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{ paddingLeft: 34, width: '100%' }}
+            />
           </div>
         }
       />
 
       <div className="page-container">
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>
-            <UserPlus size={14} /> Add Member
-          </button>
-        </div>
+        <div
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 18,
+    flexWrap: 'nowrap' // 🔥 THIS FIXES LINE BREAK
+  }}
+>
+  <div style={{ display: 'flex', gap: 10, flex: 1 }}>
+
+    <div style={{ position: 'relative', width: 260 }}>
+      <Search size={14} style={{
+        position: 'absolute',
+        left: 11,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        color: 'var(--text-muted)'
+      }} />
+      <input
+        className="input"
+        placeholder="Search..."
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        style={{ paddingLeft: 34, width: '100%' }}
+      />
+    </div>
+
+    <select className="input" style={{ width: 150 }}>
+      <option>All Roles</option>
+      <option>Frontend</option>
+      <option>Backend</option>
+    </select>
+
+    <select className="input" style={{ width: 150 }}>
+      <option>Experience</option>
+      <option>0-1 yrs</option>
+      <option>2-4 yrs</option>
+      <option>5+ yrs</option>
+    </select>
+
+  </div>
+
+  <button
+    className="btn btn-primary btn-sm"
+    onClick={() => setShowAdd(true)}
+  >
+    <UserPlus size={14} /> Add Member
+  </button>
+</div>
 
         <div className="grid-auto stagger-children">
-          {filtered.map((member, i) => {
+          {paginatedMembers.map((member, i) => {
             const stats = getMemberStats(member.tm_id);
             const color = member.avatar_color || colors[i % colors.length];
             const addedBy = getUserById(member.added_by);
@@ -201,6 +262,25 @@ export default function LeadTeamMembers() {
             );
           })}
         </div>
+        {/* ✅ PAGINATION UI - ADD HERE */}
+<div style={{
+  display: 'flex',
+  justifyContent: 'center',
+  marginTop: 20,
+  gap: 8,
+  flexWrap: 'wrap'
+}}>
+  {[...Array(totalPages)].map((_, i) => (
+    <button
+      key={i}
+      className={`btn ${currentPage === i + 1 ? 'btn-primary' : 'btn-secondary'}`}
+      style={{ padding: '6px 12px' }}
+      onClick={() => setCurrentPage(i + 1)}
+    >
+      {i + 1}
+    </button>
+  ))}
+</div>
       </div>
 
       {/* ── MEMBER DETAIL MODAL ── */}
@@ -261,6 +341,45 @@ export default function LeadTeamMembers() {
                         <span className="badge badge-gray">{drawer.experience} yrs exp</span>
                       </div>
                       <p className="mm-email">{drawer.email}</p>
+                      <p className="mm-email">{drawer.email}</p>
+
+{/* DESCRIPTION (PROFESSIONAL BIO STYLE) */}
+<div style={{
+  marginTop: 10,
+  padding: '10px 12px',
+  borderRadius: 10,
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border-subtle)',
+  fontSize: 12,
+  color: 'var(--text-secondary)',
+  lineHeight: 1.5
+}}>
+  {/* <span style={{
+    display: 'block',
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+    color: 'var(--text-muted)'
+  }}>
+    About
+  </span> */}
+
+  {
+    drawer.description ? drawer.description :
+
+    drawer.role === 'Frontend Developer'
+      ? "Frontend specialist focused on building responsive and interactive UI components with React and modern design systems."
+      : drawer.role === 'Backend Developer'
+      ? "Backend engineer responsible for API development, database optimization, and server-side logic implementation."
+      : drawer.role === 'UI Engineer'
+      ? "UI-focused developer ensuring clean, user-friendly, and visually consistent interfaces across the application."
+      : drawer.role === 'Full Stack Developer'
+      ? "Full-stack developer experienced in both frontend and backend development, building scalable web applications."
+      : "A skilled software developer contributing to system design, development, and maintenance across multiple modules."
+  }
+</div>
                     </div>
                   </div>
                   <button className="mm-close" onClick={() => setDrawer(null)}><X size={16} /></button>
@@ -287,7 +406,6 @@ export default function LeadTeamMembers() {
                   {/* LEFT */}
                   <div className="mm-col">
 
-                    {/* Skills */}
                     <div className="mm-section">
                       <p className="mm-section-title">Skills</p>
                       <div className="mm-skills">
@@ -297,7 +415,6 @@ export default function LeadTeamMembers() {
                       </div>
                     </div>
 
-                    {/* Current Projects */}
                     <div className="mm-section">
                       <p className="mm-section-title">Current Projects</p>
                       <div className="mm-list">
@@ -324,7 +441,6 @@ export default function LeadTeamMembers() {
                   {/* RIGHT */}
                   <div className="mm-col">
 
-                    {/* Workload */}
                     <div className="mm-section">
                       <p className="mm-section-title">Workload</p>
                       <div className="mm-list">
@@ -341,7 +457,6 @@ export default function LeadTeamMembers() {
                       </div>
                     </div>
 
-                    {/* Project History */}
                     <div className="mm-section">
                       <p className="mm-section-title">Project History</p>
                       <div className="mm-list">
@@ -357,7 +472,6 @@ export default function LeadTeamMembers() {
                       </div>
                     </div>
 
-                    {/* Timeline */}
                     <div className="mm-section">
                       <p className="mm-section-title">Work Timeline</p>
                       <div className="mm-list">
@@ -389,21 +503,39 @@ export default function LeadTeamMembers() {
                 }
 
                 .mm-modal {
-                  width: 100%;
-                  max-width: 780px;
-                  max-height: 90vh;
-                  overflow-y: auto;
-                  background: var(--bg-card);
-                  border: 1px solid var(--border-subtle);
-                  border-radius: 20px;
-                  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-                  display: flex;
-                  flex-direction: column;
-                  scrollbar-width: thin;
-                  scrollbar-color: var(--border-default) transparent;
-                }
+  width: 100%;
+  max-width: 780px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
 
-                /* HEADER */
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary) transparent;
+}
+
+/* Chrome Premium Scroll */
+.mm-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mm-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mm-modal::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6366f1, #2dd4bf);
+  border-radius: 20px;
+}
+
+.mm-modal::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #4f46e5, #14b8a6);
+}
+
                 .mm-header {
                   padding: 18px 20px 16px;
                   border-bottom: 1px solid var(--border-subtle);
@@ -470,7 +602,7 @@ export default function LeadTeamMembers() {
                   height: 30px;
                   border-radius: 8px;
                   border: 1px solid var(--border-default);
-                  background: var(--bg-secondary);
+                  background: var(--bg-card);
                   color: var(--text-secondary);
                   cursor: pointer;
                   display: flex;
@@ -485,7 +617,6 @@ export default function LeadTeamMembers() {
                   color: var(--accent-primary);
                 }
 
-                /* STATS ROW */
                 .mm-stats-row {
                   display: grid;
                   grid-template-columns: repeat(4, 1fr);
@@ -518,13 +649,11 @@ export default function LeadTeamMembers() {
                   letter-spacing: 0.4px;
                 }
 
-                /* BODY */
                 .mm-body {
                   display: grid;
                   grid-template-columns: 1fr 1fr;
-                  gap: 0;
-                  padding: 16px;
                   gap: 12px;
+                  padding: 16px;
                 }
 
                 .mm-col {
@@ -534,7 +663,6 @@ export default function LeadTeamMembers() {
                   min-width: 0;
                 }
 
-                /* SECTION */
                 .mm-section {
                   background: var(--bg-secondary);
                   border: 1px solid var(--border-subtle);
@@ -551,7 +679,6 @@ export default function LeadTeamMembers() {
                   margin: 0 0 10px;
                 }
 
-                /* SKILLS */
                 .mm-skills {
                   display: flex;
                   flex-wrap: wrap;
@@ -563,14 +690,12 @@ export default function LeadTeamMembers() {
                   padding: 4px 9px !important;
                 }
 
-                /* LIST */
                 .mm-list {
                   display: flex;
                   flex-direction: column;
                   gap: 8px;
                 }
 
-                /* PROJECT CARDS */
                 .mm-proj-card, .mm-hist-card {
                   background: var(--bg-card);
                   border: 1px solid var(--border-subtle);
@@ -601,7 +726,6 @@ export default function LeadTeamMembers() {
                   margin: 0;
                 }
 
-                /* PROGRESS BAR */
                 .mm-bar-track {
                   height: 5px;
                   border-radius: 99px;
@@ -627,7 +751,6 @@ export default function LeadTeamMembers() {
                   margin: 4px 0 0;
                 }
 
-                /* WORKLOAD */
                 .mm-workload-item { display: flex; flex-direction: column; gap: 5px; }
 
                 .mm-workload-top {
@@ -637,7 +760,6 @@ export default function LeadTeamMembers() {
                   color: var(--text-secondary);
                 }
 
-                /* TIMELINE */
                 .mm-timeline-item {
                   display: flex;
                   gap: 10px;
@@ -658,30 +780,18 @@ export default function LeadTeamMembers() {
                   line-height: 1.4;
                 }
 
-                /* RESPONSIVE */
                 @media (max-width: 640px) {
                   .mm-overlay { padding: 8px; align-items: flex-end; }
-
                   .mm-modal {
                     max-height: 92vh;
                     border-radius: 18px 18px 12px 12px;
                     max-width: 100%;
                   }
-
                   .mm-stats-row { grid-template-columns: repeat(2, 1fr); }
-
                   .mm-stat-item:nth-child(2) { border-right: none; }
-
                   .mm-stat-item:nth-child(3),
-                  .mm-stat-item:nth-child(4) {
-                    border-top: 1px solid var(--border-subtle);
-                  }
-
-                  .mm-body {
-                    grid-template-columns: 1fr;
-                    padding: 12px;
-                  }
-
+                  .mm-stat-item:nth-child(4) { border-top: 1px solid var(--border-subtle); }
+                  .mm-body { grid-template-columns: 1fr; padding: 12px; }
                   .mm-name { font-size: 15px; }
                 }
 
@@ -700,6 +810,14 @@ export default function LeadTeamMembers() {
       {/* ADD MODAL */}
       <Modal isOpen={showAdd} onClose={closeAddModal} title="Add New Team Member">
         <input name="name" placeholder="Full Name" value={form.name} onChange={handleFormChange} className="input" style={{ marginBottom: 12 }} />
+        <textarea
+  name="description"
+  placeholder="Short Description"
+  value={form.description}
+  onChange={handleFormChange}
+  className="input"
+  style={{ marginBottom: 12, minHeight: 80 }}
+/>
         <input name="role" placeholder="Role" value={form.role} onChange={handleFormChange} className="input" style={{ marginBottom: 12 }} />
         <input name="email" type="email" placeholder="Email Address" value={form.email} onChange={handleFormChange} className="input" style={{ marginBottom: 12 }} />
         <input name="qualification" placeholder="Qualification" value={form.qualification} onChange={handleFormChange} className="input" style={{ marginBottom: 12 }} />
@@ -714,6 +832,14 @@ export default function LeadTeamMembers() {
       {/* EDIT MODAL */}
       <Modal isOpen={showEdit} onClose={closeEditModal} title="Edit Team Member">
         <input name="name" placeholder="Full Name" value={form.name} onChange={handleFormChange} className="input" style={{ marginBottom: 12 }} />
+        <textarea
+  name="description"
+  placeholder="Short Description"
+  value={form.description}
+  onChange={handleFormChange}
+  className="input"
+  style={{ marginBottom: 12, minHeight: 80 }}
+/>
         <input name="role" placeholder="Role" value={form.role} onChange={handleFormChange} className="input" style={{ marginBottom: 12 }} />
         <input name="email" type="email" placeholder="Email Address" value={form.email} onChange={handleFormChange} className="input" style={{ marginBottom: 12 }} />
         <input name="qualification" placeholder="Qualification" value={form.qualification} onChange={handleFormChange} className="input" style={{ marginBottom: 12 }} />
@@ -724,6 +850,7 @@ export default function LeadTeamMembers() {
           <button className="btn btn-primary flex-1" onClick={handleUpdate}>Update Member</button>
         </div>
       </Modal>
+
     </div>
   );
-}
+} 

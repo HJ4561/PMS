@@ -1,10 +1,12 @@
+// components/shared/Topbar.jsx
+
 import { useState, useRef, useEffect } from 'react';
 import { Bell, Sun, Moon, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
-export default function Topbar({ title, actions, onMenuClick, searchBar }) {
+export default function Topbar({ title, actions, onMenuClick }) {
   const { unreadCount, user, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
@@ -45,13 +47,6 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
         </button>
         <h1 className="tb-title">{title}</h1>
       </div>
-
-      {/* CENTER: search — hidden on mobile */}
-      {searchBar && (
-        <div className="tb-center">
-          {searchBar}
-        </div>
-      )}
 
       {/* RIGHT: actions + theme + bell + avatar */}
       <div className="tb-right">
@@ -99,7 +94,6 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
       </div>
 
       <style>{`
-        /* ── ROOT ── */
         .tb-root {
           display: flex;
           align-items: center;
@@ -116,87 +110,35 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           overflow: visible;
         }
 
-        /* ── LEFT ── */
         .tb-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;          /* allow it to take available space */
-  min-width: 0;     /* REQUIRED for ellipsis to work properly */
-}
-          
-
-        .tb-title {
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--text-primary);
-
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  max-width: 100%;   /* no fixed limit */
-}
-  /* Large screens (default) */
-@media (min-width: 1024px) {
-  .tb-title {
-    font-size: 16px;
-  }
-}
-
-/* Tablets */
-@media (max-width: 1024px) {
-  .tb-title {
-    font-size: 15px;
-  }
-}
-
-/* Small tablets */
-@media (max-width: 768px) {
-  .tb-title {
-    font-size: 14px;
-    max-width: 200px; /* controlled trimming */
-  }
-}
-
-/* Mobile */
-@media (max-width: 540px) {
-  .tb-title {
-    font-size: 13px;
-    max-width: 140px;
-  }
-}
-
-/* Very small devices */
-@media (max-width: 360px) {
-  .tb-title {
-    font-size: 12px;
-    max-width: 100px;
-  }
-}
-
-        /* ── CENTER ── */
-        .tb-center {
-          flex: 1;
-          min-width: 0;
           display: flex;
           align-items: center;
-          justify-content: center;
-          padding: 0 8px;
+          gap: 8px;
+          flex: 1;
+          min-width: 0;
         }
 
-        .tb-center > * {
-          width: 100%;
-          max-width: 420px;
+        .tb-title {
+          font-size: 15px;
+          font-weight: 800;
+          color: var(--text-primary);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 100%;
         }
 
-        /* ── RIGHT ── */
+        @media (min-width: 1024px) { .tb-title { font-size: 16px; } }
+        @media (max-width: 768px)  { .tb-title { font-size: 14px; max-width: 200px; } }
+        @media (max-width: 540px)  { .tb-title { font-size: 13px; max-width: 140px; } }
+        @media (max-width: 360px)  { .tb-title { font-size: 12px; max-width: 100px; } }
+
         .tb-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-shrink: 0;
+        }
 
         .tb-actions {
           display: flex;
@@ -204,18 +146,6 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           gap: 6px;
         }
 
-        @media (max-width: 768px) {
-  .tb-title {
-    max-width: 140px;
-  }
-}
-
-@media (max-width: 480px) {
-  .tb-title {
-    max-width: 100px;
-  }
-}
-        /* ── ICON BUTTONS ── */
         .tb-icon-btn {
           width: 32px;
           height: 32px;
@@ -237,10 +167,7 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           color: var(--accent-primary);
         }
 
-        /* ── NOTIFICATION DOT ── */
-        .tb-notif {
-          position: relative;
-        }
+        .tb-notif { position: relative; }
 
         .tb-dot {
           position: absolute;
@@ -253,7 +180,6 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           border: 1.5px solid var(--bg-secondary);
         }
 
-        /* ── PROFILE ── */
         .tb-profile-wrap {
           position: relative;
           flex-shrink: 0;
@@ -273,9 +199,7 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           white-space: nowrap;
         }
 
-        .tb-profile-btn:hover {
-          border-color: var(--accent-primary);
-        }
+        .tb-profile-btn:hover { border-color: var(--accent-primary); }
 
         .tb-avatar {
           width: 26px;
@@ -295,19 +219,9 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           line-height: 1.2;
         }
 
-        .tb-name {
-          font-size: 12px;
-          font-weight: 700;
-          color: var(--text-primary);
-        }
+        .tb-name { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+        .tb-role { font-size: 10px; color: var(--text-muted); text-transform: capitalize; }
 
-        .tb-role {
-          font-size: 10px;
-          color: var(--text-muted);
-          text-transform: capitalize;
-        }
-
-        /* ── DROPDOWN MENU ── */
         .tb-menu {
           position: absolute;
           right: 0;
@@ -329,24 +243,14 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           transition: background 0.12s;
         }
 
-        .tb-menu-item:hover {
-          background: var(--bg-secondary);
-        }
+        .tb-menu-item:hover { background: var(--bg-secondary); }
 
         .tb-menu-logout {
           color: #f43f5e;
           border-top: 1px solid var(--border-subtle);
         }
 
-        /* ── RESPONSIVE ── */
-
-        /* Tablet: hide search, keep everything else */
-        @media (max-width: 768px) {
-          .tb-center { display: none; }
-          .tb-title { max-width: 120px; font-size: 14px; }
-        }
-
-        /* Small mobile: tighten gaps, hide profile text */
+        /* Responsive */
         @media (max-width: 540px) {
           .tb-root { padding: 0 10px; gap: 6px; }
           .tb-right { gap: 4px; }
@@ -356,7 +260,6 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           .tb-icon-btn { width: 30px; height: 30px; }
         }
 
-        /* Very small: further compress */
         @media (max-width: 360px) {
           .tb-root { padding: 0 8px; gap: 4px; }
           .tb-title { max-width: 80px; font-size: 12px; }
@@ -364,17 +267,12 @@ export default function Topbar({ title, actions, onMenuClick, searchBar }) {
           .tb-profile-btn { height: 30px; }
           .tb-avatar { width: 22px; height: 22px; font-size: 9px; }
         }
-          /* 🚫 Hide hamburger by default (desktop first approach) */
-.tb-menu-btn {
-  display: none !important;
-}
 
-/* ✅ Show only on small screens */
-@media (max-width: 768px) {
-  .tb-menu-btn {
-    display: flex !important;
-  }
-}
+        .tb-menu-btn { display: none !important; }
+
+        @media (max-width: 768px) {
+          .tb-menu-btn { display: flex !important; }
+        }
       `}</style>
     </header>
   );
